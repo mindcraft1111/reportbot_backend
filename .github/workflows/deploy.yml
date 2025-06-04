@@ -1,0 +1,29 @@
+name: dev branch auto deploy test
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3 # ssh접속
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ${{ secrets.REMOTE_ID }}
+          key: ${{secrets.SSH_KEY}}
+          port: 22
+          script: |
+            cd /home/mindcraft/viewboth/backend
+            git pull origin development .
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate
+            sudo systemctl restart gunicorn

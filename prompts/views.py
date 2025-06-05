@@ -100,13 +100,13 @@ def create_structured_prompts(request):
         structure = template.structure_json.get("sections", [])
         prompts = []
 
-        for section in structure[:10]:  # 최대 10개 섹션까지만 처리
+        for section in structure[:10]:  # 최대 10개만 생성
             section_id = section.get("id")
             label = section.get("label", "")
             description = section.get("description", "")
             constraints = section.get("constraints", {})
 
-            # constraint 설명 구성
+            # constraint 설명 생성
             constraint_summary = []
             if "max_length" in constraints:
                 constraint_summary.append(f"{constraints['max_length']}자 이내")
@@ -120,6 +120,7 @@ def create_structured_prompts(request):
                 constraint_summary.append(f"최대 {constraints['sentence_limit']}문장")
 
             constraint_text = ", ".join(constraint_summary)
+
             prompt_text = f"""
                 {label} 항목에 대한 내용을 생성해줘.
                 설명: {description}
@@ -131,13 +132,14 @@ def create_structured_prompts(request):
                     id=uuid.uuid4(),
                     template=template,
                     section_id=section_id,
+                    name=label,
                     prompt_text=prompt_text,
                     created_at=timezone.now()
                 )
             )
 
         Prompt.objects.bulk_create(prompts)
-
+    
         return JsonResponse({
             "message": f"{len(prompts)}개의 프롬프트가 생성되었습니다.",
             "template_id": str(template.id),

@@ -21,11 +21,12 @@ class Prompt(models.Model):
         ReportTemplate, on_delete=models.CASCADE, related_name="prompts"
     )
     section_id = models.CharField(max_length=100, help_text="structure_json 내 섹션 ID")
+    name = models.CharField(max_length=100, help_text="프롬프트 이름 (템플릿 섹션의 label)")
     prompt_text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Prompt for {self.section_id} in {self.template.name}"
+        return f"{self.name} ({self.section_id})"
 
 class PromptResponse(models.Model):
     prompt = models.ForeignKey(Prompt, on_delete=models.CASCADE, related_name='responses')

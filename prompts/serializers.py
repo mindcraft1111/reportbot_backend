@@ -1,17 +1,20 @@
 from rest_framework import serializers
-from .models import ReportTemplate, Prompt, PromptResponse
+from .models import Prompt, PromptTest, UsedPrompt
 
-class ReportTemplateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReportTemplate
-        fields = '__all__'
 
 class PromptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Prompt
-        fields = '__all__'
+        fields = "__all__"
 
-class PromptResponseSerializer(serializers.ModelSerializer):
+
+class PromptTestSerializer(serializers.Serializer):
     class Meta:
-        model = PromptResponse
-        fields = '__all__'
+        model = PromptTest
+        fields = "__all__"
+
+
+class UsedPromptSerializer(serializers.Serializer):
+    class Meta:
+        model = UsedPrompt
+        fields = "__all__"

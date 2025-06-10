@@ -2,14 +2,14 @@ import uuid
 from django.utils import timezone
 from django.http import JsonResponse
 
-from .models import ReportTemplate, Prompt, PromptResponse
+from .models import ReportTemplate, Prompt
 
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from langchain_google_genai import ChatGoogleGenerativeAI
-from .serializers import ReportTemplateSerializer, PromptSerializer, PromptResponseSerializer
+from .serializers import ReportTemplateSerializer, PromptSerializer
 from dotenv import load_dotenv
 from .llm.gemini_ import analyze_review_with_gemini
 
@@ -27,10 +27,11 @@ class PromptViewSet(viewsets.ModelViewSet):
     queryset = Prompt.objects.all()
     serializer_class = PromptSerializer
 
+"""
 class PromptResponseViewSet(viewsets.ModelViewSet):
     queryset = PromptResponse.objects.all()
     serializer_class = PromptResponseSerializer
-
+"""
 
 class PromptAnalyzeAPIView(APIView):
     def post(self, request, *args, **kwargs):

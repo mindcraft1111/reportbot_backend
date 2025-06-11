@@ -20,7 +20,10 @@ class RegisterView(generics.CreateAPIView): # 회원가입 CreateAPIView는 POST
     queryset = Users.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
-    
+    # 디버깅용
+    def perform_create(self, serializer):
+        print("🔥 perform_create() 호출됨 - serializer.validated_data:", serializer.validated_data)
+        serializer.save()
 
 """
 로그아웃은 프론트에서 Refresh 토큰을 보내면 서버에서 Refresh 토큰을 블랙리스트 처리만

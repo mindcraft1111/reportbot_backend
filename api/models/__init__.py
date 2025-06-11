@@ -1,3 +1,3 @@
 from .users import Users
-from .projects import Projects
-from .prompt_test import Prompt_test
+from .projects import Projects, ReportTemplate, Report, ReportSection, ReportSectionResult
+from .prompt_test import Prompt, PromptTest

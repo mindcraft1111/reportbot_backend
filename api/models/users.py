@@ -49,14 +49,13 @@ class Users(AbstractUser):
     따라서 id는 그대로 두고, index는 필요하면 별도 관리.
     """
     id = models.BigAutoField(primary_key=True, verbose_name='인덱스')  # FK가 참조하기 좋은 기본키 (기본적으로 Django가 사용하는 타입)
-    user_id = models.CharField(max_length=255, unique=True, null=False, verbose_name='아이디')  # Django 기본 사용자 모델(AbstractUser, CustomUser 등)을 사용할 경우, 회원가입 시 반드시 username 이라는 필드를 사용
-    password = models.CharField(max_length=255, null=False, verbose_name='비밀번호')
-    user_name = models.CharField(max_length=255, null=False, verbose_name='회원이름')
-    position = models.CharField(max_length=255, null=False, verbose_name='직급')
-    email = models.CharField(max_length=255, null=False, verbose_name='이메일')
-    phone = models.CharField(max_length=20, null=False, verbose_name='핸드폰')
-    company = models.CharField(max_length=100, null=False, verbose_name='회사')
-    join_date = models.CharField(max_length=100, null=False, verbose_name='가입일')
+    email = models.CharField(unique=True, max_length=20, null=False, verbose_name='이메일')
+    password = models.CharField(max_length=128, null=False, verbose_name='비밀번호')
+    user_name = models.CharField(max_length=10, null=False, verbose_name='회원이름')
+    position = models.CharField(max_length=20, null=False, verbose_name='직급')
+    phone = models.CharField(max_length=15, null=False, verbose_name='핸드폰')
+    department = models.CharField(max_length=20, null=False, verbose_name='부서')
+    join_date = models.DateTimeField(max_length=20, null=False, verbose_name='가입일')
     
 
     # 기본 생성되는 필드 생성 안되게( admin에서 쓰는게 있어 모두 생성 안하면 작동안되는게 있음 - 로그인)
@@ -64,7 +63,8 @@ class Users(AbstractUser):
     first_name = None
     last_name = None
 
-    USERNAME_FIELD = 'user_id' # 로그인 시 사용할 필드
+    USERNAME_FIELD = 'email' # 로그인 시 사용할 필드
+    REQUIRED_FIELDS = []    # 필수 설정 AbstractUser를 상속했기 때문에 내부적으로 REQUIRED_FIELDS 가 이미 정의되어 있어 email이 자동 포함되어있음
     objects = CustomUserManager()  # 기본 UserManager는 username을 요구 / 그래서 create_user()를 그대로 못씀 / 오버라이드해서 써야함 (managers.py 생성)
     class Meta:
         db_table = 'users'  # 👈 테이블명을 직접 지정

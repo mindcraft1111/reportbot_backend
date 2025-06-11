@@ -54,7 +54,7 @@ class Users(AbstractUser):
     user_name = models.CharField(max_length=10, null=False, verbose_name='회원이름')
     position = models.CharField(max_length=20, null=False, verbose_name='직급')
     phone = models.CharField(max_length=15, null=False, verbose_name='핸드폰')
-    department = models.CharField(max_length=20, null=False, verbose_name='부서')
+    company = models.CharField(max_length=20, null=False, verbose_name='회사')
     join_date = models.DateTimeField(max_length=20, null=False, verbose_name='가입일')
     
 

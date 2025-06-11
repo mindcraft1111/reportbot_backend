@@ -12,9 +12,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ('email', 'password', 'position', 'phone', 'user_name', 'department')
+        fields = ('email', 'password', 'position', 'phone', 'user_name', 'company')
 
     def create(self, validated_data):
+        print("🔥 validated_data:", validated_data)
         # 원하는 형식으로 포맷 해서 넣으면 로그인 못함 (DB에는 str로 저장되나 지정을 DateTime으로 해놔서 Django규정때문에...)
         validated_data['join_date'] = timezone.now()
         # User 생성
@@ -70,7 +71,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ('email', 'password', 'position', 'phone', 'user_name', 'department', 'join_date')
+        fields = ('email', 'password', 'position', 'phone', 'user_name', 'company', 'join_date')
         extra_kwargs = {
             'password': {'write_only': True},  # password는 write_only로 처리
             'email': {'read_only': True}, # 수정불가

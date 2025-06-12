@@ -43,35 +43,38 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "corsheaders", # CORS 설정을 위한 앱
+    "corsheaders",  # CORS 설정을 위한 앱
     "api",
-    'rest_framework',
-    'rest_framework_simplejwt.token_blacklist',
+    "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "prompts",
     "reports",
 ]
-AUTH_USER_MODEL = 'api.Users'
+AUTH_USER_MODEL = "api.Users"
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',    # JWT 인증을 사용합니다.
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT 인증을 사용합니다.
     ),
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'   # OpenAPI 스펙을 자동으로 생성합니다.
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",  # OpenAPI 스펙을 자동으로 생성합니다.
+    "DATETIME_FORMAT": "%Y-%m-%d %H:%M:%S",
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15), # Access Token의 유효 기간을 15분으로 설정합니다.
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Refresh Token의 유효 기간을 7일로 설정합니다.
-    'ROTATE_REFRESH_TOKENS': True,  # Refresh Token을 회전시켜서 보안을 강화합니다.
-    'BLACKLIST_AFTER_ROTATION': True,   # 회전 후 이전 Refresh Token을 블랙리스트에 추가합니다.
-    'AUTH_HEADER_TYPES': ('Bearer',),   # 인증 헤더 타입
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=15
+    ),  # Access Token의 유효 기간을 15분으로 설정합니다.
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=7
+    ),  # Refresh Token의 유효 기간을 7일로 설정합니다.
+    "ROTATE_REFRESH_TOKENS": True,  # Refresh Token을 회전시켜서 보안을 강화합니다.
+    "BLACKLIST_AFTER_ROTATION": True,  # 회전 후 이전 Refresh Token을 블랙리스트에 추가합니다.
+    "AUTH_HEADER_TYPES": ("Bearer",),  # 인증 헤더 타입
 }
 
 
-
-
 MIDDLEWARE = [
-    'django.middleware.common.CommonMiddleware',    # CORS 미들웨어는 항상 가장 위에 있어야 합니다.
+    "django.middleware.common.CommonMiddleware",  # CORS 미들웨어는 항상 가장 위에 있어야 합니다.
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -116,6 +119,10 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("SERVER_HOST"),
         "PORT": 3306,
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "init_command": "SET NAMES 'utf8mb4'",
+        },
     }
 }
 

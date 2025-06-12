@@ -2,14 +2,14 @@ import uuid
 from django.utils import timezone
 from django.http import JsonResponse
 
-from .models import ReportTemplate, Prompt, PromptTest, UsedPrompt
+from api.models import ReportTemplate, Prompt, PromptTest
 
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from langchain_google_genai import ChatGoogleGenerativeAI
-from .serializers import PromptSerializer, PromptTestSerializer, UsedPromptSerializer
+from .serializers import PromptSerializer, PromptTestSerializer
 from dotenv import load_dotenv
 from .llm.gemini_ import analyze_review_with_gemini
 
@@ -30,24 +30,9 @@ class PromptTestViewset(viewsets.ModelViewSet):
     serializer_class = PromptTestSerializer
 
 
-class UsedPromptViewset(viewsets.ModelViewSet):
-    queryset = UsedPrompt.objects.all()
-    serializer_class = UsedPromptSerializer
-
-
-"""
-class ReportTemplateViewSet(viewsets.ModelViewSet):
-    queryset = ReportTemplate.objects.all()
-    serializer_class = ReportTemplateSerializer
-"""
-
-"""
-class PromptResponseViewSet(viewsets.ModelViewSet):
-    queryset = PromptResponse.objects.all()
-    serializer_class = PromptResponseSerializer
-"""
-
-
+##################################################################
+# 테스트용
+##################################################################
 class PromptAnalyzeAPIView(APIView):
     def post(self, request, *args, **kwargs):
         input_prompt = request.data.get("input_prompt")

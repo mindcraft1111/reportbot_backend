@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.db import models
 from django.db.models.query import QuerySet
+from rest_framework import serializers
 
 
 class SoftDeleteManager(models.Manager):
@@ -23,7 +24,7 @@ class SoftDeleteMixin(models.Model):
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_at = timezone.now()
-        self.save()
+        self.save(update_fields=["is_deleted", "deleted_at"])
 
     class Meta:
         abstract = True
@@ -41,3 +42,9 @@ class SoftDeleteQueryset(QuerySet):
 
     def deleted(self):
         return self.filter(is_deleted=True)
+
+
+class SoftDeleteSafeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        abstract = True
+        exclude = ["is_deleted", "deleted_at"]

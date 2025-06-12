@@ -2,7 +2,7 @@
 from django.db import models
 from .users import Users
 from reports.mixins import ProjectStatusMixin, ReportStatusMixin
-from core.models.soft_delete import SoftDeleteMixin
+from .utils.soft_delete import SoftDeleteMixin
 
 """
 CharField -> VARCHAR(N)
@@ -24,7 +24,6 @@ class Projects(ProjectStatusMixin, SoftDeleteMixin):
 
 
 class ReportTemplate(SoftDeleteMixin):
-    id = models.BigAutoField(primary_key=True, verbose_name="리포트템플릿아이디")
     name = models.CharField(max_length=200, blank=False, null=False, verbose_name="템플릿명")
     html_template = models.TextField(blank=True, null=True, verbose_name="html코드")
     css_styles = models.TextField(blank=True, null=True, verbose_name="css코드")
@@ -39,9 +38,8 @@ class ReportTemplate(SoftDeleteMixin):
 
 
 class Report(ReportStatusMixin, SoftDeleteMixin):
-    id = models.BigAutoField(primary_key=True, editable=False, verbose_name="리포트아이디")
-    user = models.ForeignKey("Users", on_delete=models.CASCADE, related_name="reports", verbose_name="사용자")
-    project = models.ForeignKey("Projects", on_delete=models.CASCADE, related_name="projects", verbose_name="프로젝트")
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="reports", verbose_name="사용자")
+    project = models.ForeignKey(Projects, on_delete=models.CASCADE, related_name="projects", verbose_name="프로젝트")
     template = models.ForeignKey(ReportTemplate, on_delete=models.CASCADE, verbose_name="리포트템플릿번호")
     title = models.CharField(max_length=200, blank=False, null=False, verbose_name="리포트제목")
     summary = models.CharField(max_length=500, blank=True, null=True, verbose_name="리포트요약결과")
@@ -68,10 +66,12 @@ class Report(ReportStatusMixin, SoftDeleteMixin):
     class Meta:
         db_table = "reports"
 
+    def __str__(self):
+        return self.title
+
 
 # 리포트 각 항목 구조에 대한 메타정보
-class ReportSection(ReportStatusMixin, SoftDeleteMixin):
-    id = models.BigAutoField(primary_key=True, editable=False, verbose_name="리포트섹션아이디")
+class ReportSection(SoftDeleteMixin):
     template = models.ForeignKey(ReportTemplate, on_delete=models.CASCADE, related_name="sections", verbose_name="참조템플릿")
     section_id = models.CharField(max_length=100, blank=False, null=False, verbose_name="섹션코드")
     label = models.CharField(max_length=200, blank=False, null=False, verbose_name="섹션제목")
@@ -82,16 +82,22 @@ class ReportSection(ReportStatusMixin, SoftDeleteMixin):
         db_table = "report_section"
         unique_together = ("template", "section_id")
 
+    def __str__(self):
+        return f"[{self.section_id}] {self.label}"
+
 
 # 리포트 결과(섹션별 나눠서 저장)
-class ReportSectionResult(models.Model):
+class ReportSectionResult(ReportStatusMixin, SoftDeleteMixin):
     report = models.ForeignKey(Report, on_delete=models.CASCADE)
-    section = models.ForeignKey(ReportSection, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="참조섹션", related_name="results")
-    section_id = models.CharField(max_length=100, blank=False, null=False, verbose_name="섹션코드") # snapshot
-    label = models.CharField(max_length=200, blank=False, null=False, verbose_name="섹션제목") # snapshot
+    section = models.ForeignKey(ReportSection, on_delete=models.CASCADE, verbose_name="참조섹션", related_name="results")
+    section_code = models.CharField(max_length=100, verbose_name="섹션코드") # snapshot
+    label = models.CharField(max_length=200, verbose_name="섹션제목") # snapshot
     content = models.TextField(verbose_name="생성된 응답")
     constraint_snapshot = models.JSONField(blank=True, null=True, verbose_name="생성시점 제약조건")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "report_section_result"
+
+    def __str__(self):
+        return f"[{self.section_code}] {self.content[:10]}"

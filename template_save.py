@@ -1,7 +1,11 @@
 import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reportbot.settings')  # 프로젝트 이름 수정
+
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE", "reportbot.settings"
+)  # 프로젝트 이름 수정
 
 import django
+
 django.setup()
 
 import json
@@ -12,7 +16,9 @@ from api.models.projects import ReportTemplate
 base_path = os.path.join(settings.BASE_DIR, "static")
 
 # 파일 불러오기
-with open(os.path.join(base_path, "templates", "report_var.html"), encoding="utf-8") as f:
+with open(
+    os.path.join(base_path, "templates", "report_var.html"), encoding="utf-8"
+) as f:
     html_content = f.read()
 
 with open(os.path.join(base_path, "css", "style.css"), encoding="utf-8") as f:

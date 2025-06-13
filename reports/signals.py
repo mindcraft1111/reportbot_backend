@@ -9,20 +9,20 @@ def generate_report_sections_from_template(sender, instance, **kwargs):
     structure = instance.structure_json
     if not structure:
         return
-    
+
     # 페이지 리스트가 배열인 경우
     pages = structure.get("pages", [])
     for page in pages:
         title = page.get("title")
         page_index = page.get("page_index")
         components = page.get("components", [])
-        
+
         for component in components:
             section_code = component.get("var")
             if not section_code:
-                continue # 코드 없는 경우 제외
+                continue  # 코드 없는 경우 제외
 
-            constraint_data = {k: v for k, v in component.items() if k!= "var"}
+            constraint_data = {k: v for k, v in component.items() if k != "var"}
 
             ReportSection.objects.update_or_create(
                 template=instance,

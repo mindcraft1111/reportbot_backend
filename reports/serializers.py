@@ -53,14 +53,21 @@ class ReviewsSerializer(SoftDeleteSafeModelSerializer):
         model = Reviews
 
 
-
-
 class UserSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
 
     class Meta:
         model = Users
-        fields = ("id", "email", "company", "position", "phone", "user_name", "projects", "join_date")
+        fields = (
+            "id",
+            "email",
+            "company",
+            "position",
+            "phone",
+            "user_name",
+            "projects",
+            "join_date",
+        )
 
     def get_projects(self, obj):
         projects = obj.projects.all()

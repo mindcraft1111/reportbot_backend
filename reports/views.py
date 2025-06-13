@@ -1,5 +1,14 @@
 from rest_framework import viewsets
-from api.models import Users, Projects, Report, ReportTemplate, ReportSection, ReportSectionResult, Reviews, Products
+from api.models import (
+    Users,
+    Projects,
+    Report,
+    ReportTemplate,
+    ReportSection,
+    ReportSectionResult,
+    Reviews,
+    Products,
+)
 from .serializers import (
     ProjectsSerializer,
     ReportSerializer,
@@ -8,7 +17,7 @@ from .serializers import (
     ReportSectionResultSerializer,
     ProductsSerializer,
     ReviewsSerializer,
-    UserSerializer
+    UserSerializer,
 )
 
 
@@ -35,6 +44,7 @@ class ReportTemplateViewSet(viewsets.ModelViewSet):
 class ReportSectionViewSet(viewsets.ModelViewSet):
     queryset = ReportSection.objects.all()
     serializer_class = ReportSectionSerializer
+
 
 class ReportSectionResultViewSet(viewsets.ModelViewSet):
     queryset = ReportSectionResult.objects.all()

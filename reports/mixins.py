@@ -11,7 +11,9 @@ class ProjectStatusMixin(models.Model):
         CANCELLED = ("cancelled", "사용자 취소")
         ARCHIVED = ("archived", "보관됨")
 
-    status = models.CharField(max_length=100, choices=ProjectStatus.choices, default=ProjectStatus.CREATED)
+    status = models.CharField(
+        max_length=100, choices=ProjectStatus.choices, default=ProjectStatus.CREATED
+    )
     status_changed_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -36,8 +38,10 @@ class ReportStatusMixin(models.Model):
         ERROR = "error", "오류 발생"
         VIEWED = "viewed", "사용자 확인 완료"
         ARCHIVED = "archived", "보관됨"
-    
-    status = models.CharField(max_length=100, choices=ReportStatus.choices, default=ReportStatus.GENERATING)
+
+    status = models.CharField(
+        max_length=100, choices=ReportStatus.choices, default=ReportStatus.GENERATING
+    )
 
     class Meta:
         abstract = True
@@ -45,7 +49,7 @@ class ReportStatusMixin(models.Model):
     def set_status(self, status):
         self.status = status
         self.save(update_fields=["status"])
-    
+
     def is_ready(self):
         return self.status == self.ReportStatus.READY
 

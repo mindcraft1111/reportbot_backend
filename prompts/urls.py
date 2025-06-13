@@ -1,6 +1,14 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
-from .views import ReportTemplateViewSet, PromptViewSet, PromptResponseViewSet, PromptAnalyzeAPIView, create_sample_report_template, create_structured_prompts, analyze_all_prompts
+from .views import (
+    ReportTemplateViewSet,
+    PromptViewSet,
+    PromptResponseViewSet,
+    PromptAnalyzeAPIView,
+    create_sample_report_template,
+    create_structured_prompts,
+    analyze_all_prompts,
+)
 
 router = DefaultRouter()
 router.register(r"templates", ReportTemplateViewSet)

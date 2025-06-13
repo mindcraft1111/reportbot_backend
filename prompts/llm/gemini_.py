@@ -1,7 +1,4 @@
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate
-)
+from langchain.prompts.chat import ChatPromptTemplate, SystemMessagePromptTemplate
 
 
 def analyze_review_with_gemini(model, input_prompt):

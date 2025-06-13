@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from .managers import CustomUserManager
+
 """
 # 장고 admin 기능 사용할려면 모든 테이블 있어야함 ( 개발중 어느 기능이 안될 수있음 ......)
 변경하고
@@ -41,6 +42,8 @@ User모델 커스터마이징 하는 방법
        
 ****  마이그레이션 하면 settings.py의 INSTALLED_APPS = [] 정의된 모든 앱에서 테이블이 생김.......
 """
+
+
 # Django의 권한 시스템 쓸려면 상속 필수 AbstractUser, (AbstractBaseUser, PermissionsMixin)
 class Users(AbstractUser):
     """
@@ -48,26 +51,32 @@ class Users(AbstractUser):
     index를 primary key로 만들면 Django의 기본 흐름과 어긋나서 FK 오류를 유발할 수 있습니다.
     따라서 id는 그대로 두고, index는 필요하면 별도 관리.
     """
-    id = models.BigAutoField(primary_key=True, verbose_name='인덱스')  # FK가 참조하기 좋은 기본키 (기본적으로 Django가 사용하는 타입)
-    email = models.CharField(unique=True, max_length=20, null=False, verbose_name='이메일')
-    password = models.CharField(max_length=128, null=False, verbose_name='비밀번호')
-    user_name = models.CharField(max_length=10, null=False, verbose_name='회원이름')
-    position = models.CharField(max_length=20, null=False, verbose_name='직급')
-    phone = models.CharField(max_length=15, null=False, verbose_name='핸드폰')
-    company = models.CharField(max_length=20, null=False, verbose_name='회사')
-    join_date = models.DateTimeField(max_length=20, null=False, verbose_name='가입일')
-    
+
+    id = models.BigAutoField(
+        primary_key=True, verbose_name="인덱스"
+    )  # FK가 참조하기 좋은 기본키 (기본적으로 Django가 사용하는 타입)
+    email = models.CharField(
+        unique=True, max_length=20, null=False, verbose_name="이메일"
+    )
+    password = models.CharField(max_length=128, null=False, verbose_name="비밀번호")
+    user_name = models.CharField(max_length=10, null=False, verbose_name="회원이름")
+    position = models.CharField(max_length=20, null=False, verbose_name="직급")
+    phone = models.CharField(max_length=15, null=False, verbose_name="핸드폰")
+    company = models.CharField(max_length=20, null=False, verbose_name="회사")
+    join_date = models.DateTimeField(max_length=20, null=False, verbose_name="가입일")
 
     # 기본 생성되는 필드 생성 안되게( admin에서 쓰는게 있어 모두 생성 안하면 작동안되는게 있음 - 로그인)
     username = None
     first_name = None
     last_name = None
 
-    USERNAME_FIELD = 'email' # 로그인 시 사용할 필드
-    REQUIRED_FIELDS = []    # 필수 설정 AbstractUser를 상속했기 때문에 내부적으로 REQUIRED_FIELDS 가 이미 정의되어 있어 email이 자동 포함되어있음
-    objects = CustomUserManager()  # 기본 UserManager는 username을 요구 / 그래서 create_user()를 그대로 못씀 / 오버라이드해서 써야함 (managers.py 생성)
+    USERNAME_FIELD = "email"  # 로그인 시 사용할 필드
+    REQUIRED_FIELDS = (
+        []
+    )  # 필수 설정 AbstractUser를 상속했기 때문에 내부적으로 REQUIRED_FIELDS 가 이미 정의되어 있어 email이 자동 포함되어있음
+    objects = (
+        CustomUserManager()
+    )  # 기본 UserManager는 username을 요구 / 그래서 create_user()를 그대로 못씀 / 오버라이드해서 써야함 (managers.py 생성)
+
     class Meta:
-        db_table = 'users'  # 👈 테이블명을 직접 지정
-   
-
-
+        db_table = "users"  # 👈 테이블명을 직접 지정

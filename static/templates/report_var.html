@@ -1,0 +1,916 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>자사 vs 경쟁사 감정 분석 보고서</title>
+    <link rel="stylesheet" href="{% static '/css/style.css' %}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+
+    <!-- Page 0: 표지 -->
+    <page size="A4">
+        <section class="page-container">
+            <div
+                style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 90%; text-align: center;">
+                <h1 style="font-size: 33pt; color: #000;">{{ R_0_1 }}</h1>
+                <h1 style="font-size: 24pt; color: #000; margin-bottom: 20px;">{{ R_0_2 }}</h1>
+
+                <img src="{{ R_0_3 }}" alt="로고 이미지" style="max-width: 160px; height: auto; margin-top: 10px;">
+            </div>
+
+            <p style="position: absolute; bottom: 20px; left: 30px; font-size: 10pt; color: #aaa;">작성일자 : {{
+                R_0_4 }}</p>
+        </section>
+    </page>
+
+
+    <!-- Page 1: 목차 -->
+    <page size="A4">
+        <section class="page-container">
+            <div style="text-align: center; margin-top: 50px;">
+                <h1 style="font-size: 28pt; margin-top: 150px;">CONTENTS</h1>
+            </div>
+            <div
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100% - 300px);">
+                <ol style="font-size: 14pt; line-height: 2; text-align: left;">
+                    <li>개요</li>
+                    <li>분석 대상 및 방법론</li>
+                    <li>자사 제품 리뷰 감정 분석 결과</li>
+                    <li>경쟁사 제품 리뷰 감정 분석 결과</li>
+                    <li>자사와 경쟁사 비교 분석</li>
+                    <li>주요 개선 영역 도출</li>
+                    <li>솔루션 제안</li>
+                    <li>실행 계획 및 KPI</li>
+                    <li>결론 및 전략적 제언</li>
+                </ol>
+            </div>
+            <div class="page-footer">
+                <span class="page-number">- 1 -</span>
+            </div>
+        </section>
+    </page>
+
+
+    <!-- Page 2: 개요 -->
+    <page size="A4">
+        <section class="page-container">
+            <h1>개요</h1>
+            <p>
+                본 보고서는 자사와 경쟁사 제품에 대한 고객 리뷰를 감정 분석(Sentiment Analysis)하여 시장 내 위치를 파악하고 제품 개선 방향을 도출하는 것을 목적으로 합니다.
+                감정 분석은 자연어 처리(NLP) 기술을 활용하여 텍스트에 담긴 감정과 의견을 추출하는 기법으로, 고객의 실제 경험과 감정을 객관적으로 분석할 수 있습니다.
+            </p>
+            <h1>분석 대상 및 방법론</h1>
+            <p>
+                {{ R_2_1 }}
+            </p>
+            <div class="circle-diagram" style="position: relative; width: 300px; height: 300px; margin: 120px auto;">
+                <div class="circle-outline">
+                    <div class="circle-number n1" style="top: 30px; left: 45px;">1</div>
+                    <div class="circle-number n2" style="top: 30px; right: 45px;">2</div>
+                    <div class="circle-number n3" style="bottom: 30px; right: 45px;">3</div>
+                    <div class="circle-number n4" style="bottom: 30px; left: 45px;">4</div>
+                </div>
+                <div class="circle-item item-1">
+                    <h3>분석 목적</h3>
+                    <p>고객 만족도 요인 파악 및 제품 개선점 도출</p>
+                </div>
+                <div class="circle-item item-2">
+                    <h3>데이터 범위</h3>
+                    <p>10,000+ 고객 리뷰</p>
+                </div>
+                <div class="circle-item item-3">
+                    <h3>분석 대상</h3>
+                    <p>자사 제품 및<br>경쟁사 1개 브랜드</p>
+                </div>
+                <div class="circle-item item-4">
+                    <h3>활용 방안</h3>
+                    <p>전략적 제품 개선 및<br>마케팅 전략 수립</p>
+                </div>
+            </div>
+            <p>
+                {{ R_2_2 }}
+            </p>
+            <div class="page-footer">
+                <span class="page-number">- 2 -</span>
+            </div>
+        </section>
+    </page>
+
+    <!-- Page 3: 개요 -->
+    <page size="A4">
+        <section class="page-container">
+            <p>
+                본 분석은 SWOT 프레임워크를 활용하여 자사 제품의 강점(Strengths), 약점(Weaknesses), 기회(Opportunities), 위협(Threats)을 체계적으로 파악하고,
+                이를 바탕으로 실행 가능한 개선 방안을 도출하는 것을 목표로 합니다. 특히 고객 경험 향상과 시장 경쟁력 강화를 위한 실질적인 솔루션 제시에 중점을 두었습니다.
+            </p>
+            <div class="swot-grid">
+                <!-- 강점 -->
+                <div class="swot-box strength">
+                    <h2><B>S</B> 강점</h2>
+                    <ul>
+                        <li>조직이 잘 하는 것은?</li>
+                        <li>조직의 특별한 점은?</li>
+                    </ul>
+                    <div class="swot-example">
+                        <strong>{{ R_3_1 }}:</strong><br />
+                        {{ R_3_2 }}
+                    </div>
+                </div>
+
+                <!-- 약점 -->
+                <div class="swot-box weakness">
+                    <h2><B>W</B> 약점</h2>
+                    <ul>
+                        <li>개선할 점은?</li>
+                        <li>성과를 개선할 수 있는 리소스는?</li>
+                    </ul>
+                    <div class="swot-example">
+                        <strong>{{ R_3_3 }}:</strong><br />
+                        {{ R_3_4 }}
+                    </div>
+                </div>
+
+                <!-- 기회 -->
+                <div class="swot-box opportunity">
+                    <h2><B>O</B> 기회</h2>
+                    <ul>
+                        <li>우리 서비스에 시장 격차가 있는가?</li>
+                        <li>올해 우리의 목표는?</li>
+                    </ul>
+                    <div class="swot-example">
+                        <strong>{{ R_3_5 }}:</strong><br />
+                        {{ R_3_6 }}
+                    </div>
+                </div>
+
+                <!-- 위협 -->
+                <div class="swot-box threat">
+                    <h2><B>W</B> 위협</h2>
+                    <ul>
+                        <li>업계 변화가 있는가?</li>
+                        <li>떠오르는 새로운 시장 트렌드는?</li>
+                    </ul>
+                    <div class="swot-example">
+                        <strong>{{ R_3_7 }}:</strong><br />
+                        {{ R_3_8 }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <span class="page-number">- 3 -</span>
+            </div>
+        </section>
+    </page>
+
+
+    <!-- Page 4: 자사 제품 -->
+    <page size="A4">
+        <section class="page-container">
+            <h1>자사 제품 리뷰 감정 분석 결과</h1>
+            <p>
+                자사 제품에 대한 고객 리뷰를 심층 분석한 결과, 전반적인 감정 지수와 주요 피드백 패턴을 확인할 수 있었습니다. 본 섹션에서는 분석 방법론과 주요 발견 사항을 상세히 설명합니다.
+            </p>
+            <h2>분석 방법론</h2>
+            <p>
+                감정 점수는 3점을 제외하고 1-5점 척도로 산출되었으며, 1-2점은 부정적 감정, 4-5점은 긍정적 감정으로 분류했습니다. 추가적으로 텍스트 마이닝을 통해 주요 키워드와 토픽을 추출하여
+                고객 의견의 세부 내용을 파악했습니다.
+            </p>
+            <canvas id="selfSentimentChart" width="500" height="300"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+            <script>
+                const selfCtx = document.getElementById('selfSentimentChart').getContext('2d');
+                new Chart(selfCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['긍정적 (4~5점)', '부정적 (1~2점)'],
+                        datasets: [{
+                            data: ["{{ R_4_1_1 }}", "{{ R_4_1_2 }}"], // {{ R_4_1 }} 변수화
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(255, 99, 132, 0.7)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        plugins: {
+                            datalabels: {
+                                color: '#000',
+                                formatter: (value, context) => `${value}%`,
+                                font: {
+                                    weight: 'bold',
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            </script>
+            <h2 style="font-size: 12pt;">주요 긍정적 피드백</h2>
+            <div class="compact-feedback-grid">
+                <div class="cf-item">
+                    <span class="cf-icon">{{ R_4_2 }}</span>
+                    <div><strong>{{ R_4_3 }}</strong><br><span class="cf-desc">{{ R_4_4 }}</span></div>
+                </div>
+                <div class="cf-item">
+                    <span class="cf-icon">{{ R_4_5 }}</span>
+                    <div><strong>{{ R_4_6 }}</strong><br><span class="cf-desc">{{ R_4_7 }}</span></div>
+                </div>
+                <div class="cf-item">
+                    <span class="cf-icon">{{ R_4_8 }}</span>
+                    <div><strong>{{ R_4_9 }}</strong><br><span class="cf-desc">{{ R_4_10 }}</span></div>
+                </div>
+            </div>
+
+            <h2 style="font-size: 12pt; margin-top: 16pt;">주요 부정적 피드백</h2>
+            <div class="compact-feedback-grid">
+                <div class="cf-item">
+                    <span class="cf-icon">{{ R_4_11 }}</span>
+                    <div><strong>{{ R_4_12 }}</strong><br><span class="cf-desc">{{ R_4_13 }}</span></div>
+                </div>
+                <div class="cf-item">
+                    <span class="cf-icon">{{ R_4_14 }}</span>
+                    <div><strong>{{ R_4_15 }}</strong><br><span class="cf-desc">{{ R_4_16 }}</span></div>
+                </div>
+                <div class="cf-item">
+                    <span class="cf-icon">{{ R_4_17 }}</span>
+                    <div><strong>{{ R_4_18 }}</strong><br><span class="cf-desc">{{ R_4_19 }}</span></div>
+                </div>
+            </div>
+
+            <p>{{ R_4_20 }}</p>
+
+            <div class="page-footer">
+                <span class="page-number">- 4 -</span>
+            </div>
+        </section>
+    </page>
+
+    <!-- Page 5: 경쟁사 제품 -->
+    <page size="A4">
+        <section class="page-container">
+            <h1>경쟁사 제품 리뷰 감정 분석 결과</h1>
+            <p>
+                주요 경쟁사 브랜드(젠하이저)의 제품에 대한 고객 리뷰를 동일한 방법론으로 분석하여 경쟁 환경을 파악했습니다.
+                이를 통해 경쟁사 제품의 강점과 약점을 객관적으로 평가하고, 자사 제품과의 상대적 위치를 확인할 수 있습니다.
+            </p>
+            <h2>자사와 경쟁사 감정 점수 분포 비교</h2>
+            <canvas id="sentimentChart" width="500" height="300"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+            <script>
+                const ctx = document.getElementById('sentimentChart').getContext('2d');
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['자사', '{{ R_5_2 }}'],
+                        datasets: [
+                            {
+                                label: '긍정적(4~5점)',
+                                //data: [65, 72], // 변수화
+                                data: '{{ R_5_2_1|safe }}', // 변수화
+                                backgroundColor: '#d94e0f'
+                            },
+                            {
+                                label: '부정적(1~2점)',
+                                //data: [15, 10], // 변수화
+                                data: '{{ R_5_2_2|safe }}', // 변수화
+                                backgroundColor: '#039be5'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 90,
+                                ticks: {
+                                    stepSize: 10
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: { size: 12 }
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: value => value,
+                                font: {
+                                    weight: 'bold',
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            </script>
+
+            <h2>경쟁사 주요 강점</h2>
+
+            <div class="competitor-box">
+                <div class="competitor-name">{{ R_5_2 }}</div>
+                <ul class="competitor-strengths">
+                    <li>{{ R_5_3 }}</li>
+                    <li>{{ R_5_4 }}</li>
+                    <li>{{ R_5_5 }}</li>
+                </ul>
+            </div>
+
+            <p class="competitor-commentary">
+                {{ R_5_6 }}
+            </p>
+            <div class="page-footer">
+                <span class="page-number">- 5 -</span>
+            </div>
+        </section>
+    </page>
+
+    <!-- Page 6: 비교 분석 -->
+    <page size="A4">
+        <section class="page-container">
+            <h1>자사와 경쟁사 비교 분석</h1>
+            <p>자사와 경쟁사 제품의 감정 분석 결과를 직접 비교하여 시장 내 경쟁력을 종합적으로 평가했습니다. 이를 통해 자사 제품의 상대적 강점과 약점을 명확히 파악하고, 경쟁 우위를 확보하기 위한
+                전략적 방향성을 도출했습니다.</p>
+
+            <h2>카테고리별 감정 점수 비교</h2>
+            <canvas id="categoryChart" width="580" height="280"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+            <script>
+                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        //labels: ['사용 편의성', '기능 다양성', '성능/속도', '배터리 수명', '가격 경쟁력', '디자인', '고객 지원'],
+                        labels: '{{ R_6_1_1 }}',
+                        datasets: [
+                            {
+                                label: '자사',
+                                //data: [4.3, 4.4, 4.3, 3.1, 3.5, 4.2, 3.6],
+                                data: '{{ R_6_1_2 }}',
+                                backgroundColor: '#d94e0f'
+                            },
+                            {
+                                label: 'A사',
+                                //data: [4.5, 4.1, 4.0, 4.4, 4.2, 4.0, 4.5], // 변수화
+                                data: '{{ R_6_1_3 }}', // 변수화
+                                backgroundColor: '#039be5'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: false,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 5,
+                                ticks: { stepSize: 1 }
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 12 } } },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'right',
+                                formatter: value => value.toFixed(1),
+                                font: { weight: 'bold', size: 10 },
+                                color: '#000'
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            </script>
+
+            <h2>GAP 분석</h2>
+            <div class="gap-box-group">
+                <div class="gap-box">
+                    <h3>강점 영역</h3>
+                    <p>{{ R_6_2 }}</p>
+                </div>
+                <div class="gap-box">
+                    <h3>개선 필요 영역</h3>
+                    <p>{{ R_6_3 }}</p>
+                </div>
+                <div class="gap-box">
+                    <h3>기회 영역</h3>
+                    <p>{{ R_6_4 }}</p>
+                </div>
+            </div>
+
+            <h2>고객 충성도 및 추천 의향 비교</h2>
+            <table class="gap-table">
+                <thead>
+                    <tr>
+                        <th>지표</th>
+                        <th>자사</th>
+                        <th>{{ R_6_5 }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>NPS(순추천지수)</td>
+                        <td>{{ R_6_6 }}</td>
+                        <td>{{ R_6_7 }}</td>
+                    </tr>
+                    <tr>
+                        <td>재구매 의향(%)</td>
+                        <td>{{ R_6_8 }}</td>
+                        <td>{{ R_6_9 }}</td>
+                    </tr>
+                    <tr>
+                        <td>브랜드 충성도(5점 만점)</td>
+                        <td>{{ R_6_10 }}</td>
+                        <td>{{ R_6_11 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p class="gap-summary">
+                {{ R_6_12 }}
+            </p>
+            <div class="page-footer">
+                <span class="page-number">- 6 -</span>
+            </div>
+        </section>
+    </page>
+
+
+    <!-- Page 7: 개선 영역 -->
+    <page size="A4">
+        <section class="page-container">
+            <h1>주요 개선 영역 도출</h1>
+            <p>감정 분석 결과와 경쟁사 비교를 통해 자사 제품의 주요 개선 영역을 도출했습니다. 이는 고객 만족도 향상과 시장 경쟁력 강화를 위해 우선적으로 해결해야 할 과제들입니다.</p>
+
+            <h2>우선 개선 영역 도출 기준</h2>
+            <ol>
+                <li>부정적 감정 비율 - 해당 요소에 대한 부정적 피드백의 비중</li>
+                <li>경쟁사 대비 격차 - 경쟁사와의 감정 점수 차이</li>
+                <li>고객 중요도 - 고객이 해당 요소에 부여하는 중요성</li>
+            </ol>
+
+            <div class="real-pyramid">
+                <div class="pyramid-row row1">
+                    <div class="pyramid-content">
+                        <img src="{{ R_7_5_1 }}" alt="">
+                        <div>
+                            <strong>{{ R_7_5_2 }}</strong><br>
+                            {{ R_7_5_3 }}
+                        </div>
+                    </div>
+                </div>
+                <div class="pyramid-row row2">
+                    <div class="pyramid-content">
+                        <img src="{{ R_7_5_4 }}" alt="">
+                        <div>
+                            <strong>{{ R_7_5_6 }}</strong><br>
+                            {{ R_7_5_7 }}
+                        </div>
+                    </div>
+                </div>
+                <div class="pyramid-row row3">
+                    <div class="pyramid-content">
+                        <img src="{{ R_7_5_8 }}" alt="">
+                        <div>
+                            <strong>{{ R_7_5_9 }}</strong><br>
+                            {{ R_7_5_10 }}
+                        </div>
+                    </div>
+                </div>
+                <div class="pyramid-row row4">
+                    <div class="pyramid-content">
+                        <img src="{{ R_7_5_11 }}" alt="">
+                        <div>
+                            <strong>{{ R_7_5_12 }}</strong><br>
+                            {{ R_7_5_13 }}
+                        </div>
+                    </div>
+                </div>
+                <div class="pyramid-row row5">
+                    <div class="pyramid-content">
+                        <img src="{{ R_7_5_14 }}" alt="">
+                        <div>
+                            <strong>{{ R_7_5_15 }}</strong><br>
+                            {{ R_7_5_16 }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-footer">
+                <span class="page-number">- 7 -</span>
+            </div>
+
+        </section>
+    </page>
+
+    <!-- Page 8: 개선 영역 -->
+    <page size="A4">
+        <section class="page-container">
+            <h2>고객 기대치와 실제 경험 간 차이 분석</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>요소</th>
+                        <th>고객 기대치(5점 만점)</th>
+                        <th>실제 경험(5점 만점)</th>
+                        <th>GAP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in R_8_2 %}
+                    <tr>
+                        <td>{{ item.label }}</td>
+                        <td>{{ item.expected }}</td>
+                        <td>{{ item.actual }}</td>
+                        <td>{{ item.gap }}</td>
+                    </tr>
+                    { % endfor %}
+                </tbody>
+            </table>
+            <p>
+                {{ R_8_3 }}
+            </p>
+            <div class="page-footer">
+                <span class="page-number">- 8 -</span>
+            </div>
+        </section>
+    </page>
+
+    <!-- Page 9: 솔루션 -->
+    <page size="A4">
+        <section class="page-container small-layout">
+            <h1>솔루션 제안</h1>
+            <p>앞서 도출된 개선 영역을 바탕으로, 자사 제품의 경쟁력 강화와 고객 만족도 향상을 위한 구체적인 솔루션을 제안합니다. 각 솔루션은 실행 가능성과 예상 효과를 고려하여 단기, 중기, 장기로
+                구분하였습니다.</p>
+
+            <div class="solution-timeline">
+                <div class="solution-block">
+                    <div class="timeline-left">
+                        <h3>단기 솔루션<br><span>(3개월 이내)</span></h3>
+                        <div class="line-number">1</div>
+                    </div>
+                    <ul class="solution-content">
+                        {{% for item in R_9_3_1 %}}
+                          <li>{{ item.solution }}</li>
+                        <!-- <li>배터리 최적화 펌웨어 업데이트 배포</li>
+                        <li>설치 가이드 개선 및 비디오 튜토리얼 제작</li>
+                        <li>고객 지원 담당자 추가 교육 및 서비스 시간 확대</li>
+                        <li>가격 전략 재검토 및 특별 프로모션 기획</li> -->
+                        {{% endfor %}}
+                    </ul>
+                </div>
+
+                <div class="solution-block">
+                    <div class="timeline-left">
+                        <h3>중기 솔루션<br><span>(6~12개월)</span></h3>
+                        <div class="line-number">2</div>
+                    </div>
+                    <ul class="solution-content">
+                        {{% for item in R_9_3_2 %}}
+                          <li>{{ item.solution }}</li>
+                        {{% endfor %}}
+                    </ul>
+                </div>
+
+                <div class="solution-block">
+                    <div class="timeline-left">
+                        <h3>장기 솔루션<br><span>(12~24개월)</span></h3>
+                        <div class="line-number">3</div>
+                    </div>
+                    <ul class="solution-content">
+                        {{% for item in R_9_3_3 %}}
+                          <li>{{ item.solution }}</li>
+                        {{% endfor %}}
+                    </ul>
+                </div>
+            </div>
+
+            <h2>핵심 솔루션 상세</h2>
+            <div class="solution-grid compact">
+                <div class="solution-card">
+                    <h3>{{ R_9_5_1 }}</h3>
+                    <p class="subtitle">{{ R_9_5_2 }}:</p>
+                    <ul>
+                        <!-- <li>단기: 배터리 사용량 최적화 알고리즘 적용 (15% 효율 향상 목표)</li>
+                        <li>중기: 신형 배터리 셀 도입 및 전략 관리 회로 개선 (30% 효율 향상)</li>
+                        <li>장기: 저전력 하드웨어 아키텍처 전면 개편 및 에너지 하베스팅 기술 적용 (50% 이상 효율 향상)</li> -->
+                        {{% for item in R_9_5_3 %}}
+                          <li>{{ item.solution }}</li>
+                        {{% endfor %}}
+                    </ul>
+                </div>
+
+                <div class="solution-card">
+                    <h3>{{ R_9_5_4 }}</h3>
+                    <p class="subtitle">{{ R_9_5_5 }}:</p>
+                    <ul>
+                        <!--<li>단기: 단계별 설치 가이드 개선 및 QR 코드 기반 빠른 설정 기능 추가</li>-->
+                        <!--<li>중기: 증강현실(AR) 기반 설치 가이드 도입</li>-->
+                        <!--<li>장기: AI 기반 자동 감지 및 설정 시스템 구현 (플러그 앤 플레이 경험 제공)</li>-->
+                        {{% for item in R_9_5_6 %}}
+                          <li>{{ item.solution }}</li>
+                        {{% endfor %}}
+                    </ul>
+                </div>
+
+                <div class="solution-card">
+                    <h3>{{ R_9_5_7 }}</h3>
+                    <p class="subtitle">{{ R_9_5_8 }}:</p>
+                    <ul>
+                        <!--<li>단기: 경쟁 환경을 고려한 가격 조정 및 번들 할인 프로모션 도입</li>-->
+                        <!--<li>중기: 기본형/고급형 제품 라인 구분을 통한 가격 차별화</li>-->
+                        <!--<li>장기: 하드웨어 + 서비스 구독 모델 도입으로 초기 비용 부담 감소</li>-->
+                        {{% for item in R_9_5_9 %}}
+                          <li>{{ item.solution }}</li>
+                        {{% endfor %}}
+                    </ul>
+                </div>
+            </div>
+
+            <p class="solution-description">
+                {{ R_9_6 }}
+            </p>
+            <div class="page-footer">
+                <span class="page-number">- 9 -</span>
+            </div>
+        </section>
+    </page>
+
+
+    <!-- Page 10: 실행 계획 -->
+    <page size="A4">
+        <section class="page-container">
+            <h1>실행 계획 및 KPI</h1>
+            <p>앞서 제안된 솔루션을 효과적으로 구현하기 위한 단계별 실행 계획과 성과 측정을 위한 핵심 성과 지표(KPI)를 수립했습니다. 체계적인
+                실행 계획은 리소스의 효율적 배분과 프로젝트의 성공적인 완수를 위해 필수적입니다.</p>
+            <h2>솔루션 이행을 위한 단계별 실행 계획</h2>
+
+            <div class="execution-plan">
+                <div class="plan-step">
+                    <div class="plan-icon">
+                        <img src="https://img.icons8.com/ios-filled/32/search--v1.png" alt="상세 분석">
+                    </div>
+                    <div class="plan-content">
+                        <strong>상세 분석</strong>
+                        <p>주요 개선 영역에 대한 깊이 있는 분석 및 요구사항 정의</p>
+                    </div>
+                </div>
+
+                <div class="plan-step">
+                    <div class="plan-icon">
+                        <img src="https://img.icons8.com/ios-filled/32/000000/airplane-take-off.png" alt="계획 수립">
+                    </div>
+                    <div class="plan-content">
+                        <strong>계획 수립</strong>
+                        <p>우선순위 설정, 리소스 할당 및 상세 일정 계획</p>
+                    </div>
+                </div>
+
+                <div class="plan-step">
+                    <div class="plan-icon">
+                        <img src="https://img.icons8.com/ios-filled/32/000000/source-code.png" alt="개발 실행">
+                    </div>
+                    <div class="plan-content">
+                        <strong>개발/실행</strong>
+                        <p>솔루션 개발 및 구현 (단계별 접근)</p>
+                    </div>
+                </div>
+
+                <div class="plan-step">
+                    <div class="plan-icon">
+                        <img src="https://img.icons8.com/ios-filled/32/000000/test-tube.png" alt="테스트 검증">
+                    </div>
+                    <div class="plan-content">
+                        <strong>테스트/검증</strong>
+                        <p>품질 보증 테스트 및 초기 사용자 피드백 수집</p>
+                    </div>
+                </div>
+
+                <div class="plan-step">
+                    <div class="plan-icon">
+                        <img src="https://img.icons8.com/ios-filled/32/000000/rocket.png" alt="출시 모니터링">
+                    </div>
+                    <div class="plan-content">
+                        <strong>출시/모니터링</strong>
+                        <p>솔루션 출시 및 지속적인 성과 모니터링</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2>담당 부서 및 역할 분담</h2>
+
+            <table class="role-table">
+                <thead>
+                    <tr>
+                        <th>솔루션</th>
+                        <th>주관 부서</th>
+                        <th>협업 부서</th>
+                        <th>주요 역할</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {R_10_1?.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.solution}</td>
+                          <td>{item.ownerDept}</td>
+                          <td>{item.coopDept}</td>
+                          <td>{item.role}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            <div class="page-footer">
+                <span class="page-number">- 10 -</span>
+            </div>
+        </section>
+    </page>
+
+    <!-- Page 11: 실행 계획 -->
+    <page size="A4">
+        <section class="page-container">
+            <h2>성과 측정을 위한 핵심 성과 지표(KPI)</h2>
+
+            <div class="kpi-grid">
+                {R_11_1?.map((kpi, index) => (
+                    <div className="kpi-card" key={index}>
+                      <h3>{kpi.title}</h3>
+                      <ul>
+                        {kpi.items?.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                ))}
+            </div>
+
+            <h2>타임라인 및 예산 계획</h2>
+            <p>
+                {{ R_11_2 }}
+            </p>
+            <p>
+                {{ R_11_3 }}
+            </p>
+            <div class="page-footer">
+                <span class="page-number">- 11 -</span>
+            </div>
+        </section>
+    </page>
+
+    <!-- Page 12: 결론 -->
+    <page size="A4">
+        <section class="page-container">
+            <h1>결론 및 전략적 제언</h1>
+            <p>본 리포트에서는 자사와 경쟁사 제품의 고객 리뷰를 감정 분석하여 시장 내 위치를 파악하고, 제품 개선을 위한 솔루션을 도출했습니다.
+                종합적인 분석 결과를 바탕으로 다음과 같은 결론과 제언을 제시합니다</p>
+            <h2>감정 분석 결과 종합</h2>
+            <canvas id="summaryChart" width="600" height="300"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+            <script>
+                const summaryCtx = document.getElementById('summaryChart').getContext('2d');
+
+                new Chart(summaryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['전체 감정 점수', 'NPS', '재구매 의향'],
+                        datasets: [
+                            {
+                                label: '자사 현재',
+                                data: "{{ R_12_1_1 }}",
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                            },
+                            {
+                                label: '경쟁사 평균',
+                                data: "{{ R_12_1_2 }}",
+                                backgroundColor: 'rgba(255, 159, 64, 0.7)'
+                            },
+                            {
+                                label: '목표치',
+                                data: "{{ R_12_1_3 }}",
+                                backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: { size: 12 }
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                font: {
+                                    weight: 'bold',
+                                    size: 10
+                                },
+                                formatter: value => value
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            </script>
+            <div class="recommendation-columns">
+                <div class="rec-box">
+                    <h3>현재 상황 인식</h3>
+                    <p>
+                        {{ R_12_2_1 }}
+                    </p>
+                </div>
+                <div class="rec-box">
+                    <h3>전략적 방향성</h3>
+                    <p>
+                        {{ R_12_2_2 }}
+                    </p>
+                    </p>
+                </div>
+                <div class="rec-box">
+                    <h3>미래 전망 및 제언</h3>
+                    <p>
+                        {{ R_12_2_3 }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="page-footer">
+                <span class="page-number">- 12 -</span>
+            </div>
+        </section>
+    </page>
+
+    <!-- Page 13: 결론 -->
+    <page size="A4">
+        <section class="page-container">
+            <h2>경영진을 위한 핵심 제언</h2>
+            <div class="recommendation-grid">
+                <div class="rec-card">
+                    <div class="rec-number">1</div>
+                    <h4>{{ R_13_1_1_1 }}</h4>
+                    <p>
+                        {{ R_13_1_1_2 }}
+                    </p>
+                </div>
+                <div class="rec-card">
+                    <div class="rec-number">2</div>
+                    <h4>{{ R_13_1_2_1 }}</h4>
+                    <p>
+                        {{ R_13_1_2_2 }}
+                    </p>
+                </div>
+                <div class="rec-card">
+                    <div class="rec-number">3</div>
+                    <h4>{{ R_13_1_3_1 }}</h4>
+                    <p>
+                        {{ R_13_1_3_2 }}
+                    </p>
+                </div>
+                <div class="rec-card">
+                    <div class="rec-number">4</div>
+                    <h4>{{ R_13_1_4_1 }}</h4>
+                    <p>
+                        {{ R_13_1_4_2 }}
+                    </p>
+                </div>
+            </div>
+
+            <p class="recommendation-summary">
+                본 리포트에서 제시된 분석과 제안은 현재 시점의 데이터를 바탕으로 한 것으로,
+                시장 환경과 고객 니즈의 변화에 따라 지속적으로 업데이트되어야 합니다.
+                고객 중심 비즈니스로의 전환은 단기적인 프로젝트가 아닌 조직 문화의 근본적 변화를 요구하는 장기적 여정임을 인식하고,
+                전사적 차원의 지속적인 노력이 필요합니다.
+            </p>
+            <div class="page-footer">
+                <span class="page-number">- 13 -</span>
+            </div>
+        </section>
+    </page>
+
+</body>
+
+</html>

@@ -130,7 +130,10 @@ def gemini_streaming_kakaka9509(request):
         user_prompt = body.get("user_prompt", "").strip()
         product1 = body.get("product1", "").strip()
         product2 = body.get("product2", "").strip()
-        constraint = body.get("constraint")
+        chunk_constraint = body.get("chunk_constraint")
+        chunk_type = body.get("chunk_type")
+
+        print("😀😀😀", body)
 
         if not user_prompt:
             return JsonResponse({"error": "Prompt is required"}, status=400)

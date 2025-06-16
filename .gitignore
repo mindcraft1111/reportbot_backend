@@ -141,3 +141,4 @@ GitHub.sublime-settings
 # Migrations
 **/migrations/
 vectordb/
+reviews_csv/

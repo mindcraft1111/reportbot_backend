@@ -54,7 +54,7 @@ class LogoutView(APIView):
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"detail": "로그아웃"}, status=204)
+            return Response({"detail": "로그아웃"}, status=200)
         except TokenError as e:
             return Response({"detail": str(e)}, status=400)
         except Exception:

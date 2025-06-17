@@ -19,6 +19,8 @@ from .tools import vector_analysis, classify_analysis_type
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REVIEWS_CSV_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "reviews_csv"))
 
+LLM = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.0)
+
 
 # =============================================
 # 상태 정의
@@ -37,7 +39,7 @@ class AnalysisState(TypedDict):
 # 메트릭 분석 노드들
 # =============================================
 def classify_target_node(state: AnalysisState) -> AnalysisState:
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
+
     classification_prompt = PromptTemplate.from_template(
         """
         다음 문장을 읽고, 자사/경쟁사/자사+경쟁사 중 어떤 데이터를 기반으로 질문한 것인지 판단해줘.
@@ -57,7 +59,7 @@ def classify_target_node(state: AnalysisState) -> AnalysisState:
         """
     )
     prompt_text = state.get("user_prompt", "").strip()
-    result = llm.invoke(classification_prompt.format(prompt=prompt_text))
+    result = LLM.invoke(classification_prompt.format(prompt=prompt_text))
     content = result.content.strip()
     try:
         json_text = re.sub(r"^```json\s*|```$", "", content).strip()
@@ -72,12 +74,11 @@ def classify_target_node(state: AnalysisState) -> AnalysisState:
 
 
 def generate_own_metrics_node(state: AnalysisState) -> AnalysisState:
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
     csv_path1 = os.path.join(REVIEWS_CSV_DIR, f"{state['product1']}.csv")
 
     agent = create_csv_agent(
-        llm,
+        LLM,
         csv_path1,
         agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
@@ -96,12 +97,11 @@ def generate_own_metrics_node(state: AnalysisState) -> AnalysisState:
 
 
 def generate_comp_metrics_node(state: AnalysisState) -> AnalysisState:
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
     csv_path2 = os.path.join(REVIEWS_CSV_DIR, f"{state['product2']}.csv")
 
     agent = create_csv_agent(
-        llm,
+        LLM,
         csv_path2,
         agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
@@ -120,13 +120,12 @@ def generate_comp_metrics_node(state: AnalysisState) -> AnalysisState:
 
 
 def generate_both_metrics_node(state: AnalysisState) -> AnalysisState:
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
     csv_path1 = os.path.join(REVIEWS_CSV_DIR, f"{state['product1']}.csv")
     csv_path2 = os.path.join(REVIEWS_CSV_DIR, f"{state['product2']}.csv")
 
     agent = create_csv_agent(
-        llm,
+        LLM,
         [csv_path1, csv_path2],
         agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,

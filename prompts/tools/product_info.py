@@ -7,7 +7,7 @@ from langchain_core.tools import tool
 def load_product_metadata(product_ids: list) -> str:
     from api.models.reviews import Products
     products = Products.objects.filter(id__in=product_ids)
-    df = pd.DataFrame(list[products.values])
+    df = pd.DataFrame(list(products.values()))
     return "\n".join([f"[제품 정보]: {row.to_dict()}" for _, row in df.iterrows()])
 
 

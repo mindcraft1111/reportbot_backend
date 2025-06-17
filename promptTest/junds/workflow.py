@@ -76,6 +76,7 @@ def classify_target_node(state: AnalysisState) -> AnalysisState:
 def generate_own_metrics_node(state: AnalysisState) -> AnalysisState:
 
     csv_path1 = os.path.join(REVIEWS_CSV_DIR, f"{state['product1']}.csv")
+    print("generate_own_metrics_node")
 
     agent = create_csv_agent(
         LLM,
@@ -83,6 +84,15 @@ def generate_own_metrics_node(state: AnalysisState) -> AnalysisState:
         agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
         allow_dangerous_code=True,
+        handle_parsing_errors=True,
+        max_iterations=3,
+        return_intermediate_steps=True,  # ✅ 추가 (디버깅용)
+        prefix="You have access to a CSV file loaded as 'df'. Use python_repl_ast tool to execute Python code.",
+    )
+
+    print(f"File exists: {os.path.exists(csv_path1)}")
+    print(
+        f"File size: {os.path.getsize(csv_path1) if os.path.exists(csv_path1) else 'N/A'}"
     )
 
     query = f"SELECT * FROM products WHERE id = {state['product1']}"
@@ -91,7 +101,7 @@ def generate_own_metrics_node(state: AnalysisState) -> AnalysisState:
         product_df.to_dict(orient="records")[0] if not product_df.empty else {}
     )
 
-    response = agent.run(state["user_prompt"])
+    response = agent.invoke(state["user_prompt"])
     context = f"{response}\n\n[제품 정보]: {product_info}"
     return {**state, "context": context}
 
@@ -99,6 +109,7 @@ def generate_own_metrics_node(state: AnalysisState) -> AnalysisState:
 def generate_comp_metrics_node(state: AnalysisState) -> AnalysisState:
 
     csv_path2 = os.path.join(REVIEWS_CSV_DIR, f"{state['product2']}.csv")
+    print("generate_comp_metrics_node")
 
     agent = create_csv_agent(
         LLM,
@@ -106,6 +117,9 @@ def generate_comp_metrics_node(state: AnalysisState) -> AnalysisState:
         agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
         allow_dangerous_code=True,
+        handle_parsing_errors=True,
+        max_iterations=3,
+        return_intermediate_steps=True,  # ✅ 추가 (디버깅용)
     )
 
     query = f"SELECT * FROM products WHERE id = {state['product2']}"
@@ -114,12 +128,13 @@ def generate_comp_metrics_node(state: AnalysisState) -> AnalysisState:
         product_df.to_dict(orient="records")[0] if not product_df.empty else {}
     )
 
-    response = agent.run(state["user_prompt"])
+    response = agent.invoke(state["user_prompt"])
     context = f"{response}\n\n[제품 정보]: {product_info}"
     return {**state, "context": context}
 
 
 def generate_both_metrics_node(state: AnalysisState) -> AnalysisState:
+    print("generate_both_metrics_node")
 
     csv_path1 = os.path.join(REVIEWS_CSV_DIR, f"{state['product1']}.csv")
     csv_path2 = os.path.join(REVIEWS_CSV_DIR, f"{state['product2']}.csv")
@@ -130,6 +145,9 @@ def generate_both_metrics_node(state: AnalysisState) -> AnalysisState:
         agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
         verbose=True,
         allow_dangerous_code=True,
+        handle_parsing_errors=True,
+        max_iterations=3,
+        return_intermediate_steps=True,  # ✅ 추가 (디버깅용)
     )
 
     query = (
@@ -146,7 +164,7 @@ def generate_both_metrics_node(state: AnalysisState) -> AnalysisState:
         comp_info.to_dict(orient="records")[0] if not comp_info.empty else {}
     )
 
-    response = agent.run(state["user_prompt"])
+    response = agent.invoke(state["user_prompt"])
     context = (
         f"{response}\n\n"
         f"[자사 제품 정보]: {own_info_dict}\n"

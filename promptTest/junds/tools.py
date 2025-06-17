@@ -81,12 +81,12 @@ def vector_analysis(user_prompt: str, product1: str, product2: str) -> dict:
 
     # ChromaDB 불러오기
     vectordb1 = Chroma(
-        persist_directory=f"../vectordb/reviews/product_{product1}",
+        persist_directory=f"../../vectordb/reviews/product_{product1}",
         collection_name=f"reviews_product_{product1}",
         embedding_function=embeddings,
     )
     vectordb2 = Chroma(
-        persist_directory=f"../vectordb/reviews/product_{product2}",
+        persist_directory=f"../../vectordb/reviews/product_{product2}",
         collection_name=f"reviews_product_{product2}",
         embedding_function=embeddings,
     )

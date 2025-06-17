@@ -1,5 +1,4 @@
 import json
-import time
 
 from django.http import StreamingHttpResponse
 
@@ -25,23 +24,23 @@ class PromptTestViewset(viewsets.ModelViewSet):
 
 
 def stream_prompt_result(prompt_app, prompt_state):
-    # 1. LangGraph 실행 (동기)
     prompt_result = prompt_app.invoke(prompt_state)
     result_dict = prompt_result["result"]
+    if isinstance(result_dict, dict):
+        result_str = json.dumps(result_dict, ensure_ascii=False)
+    else:
+        result_str = str(result_dict)
 
-    # 2. 제너레이터 정의
     def event_stream():
-        for key, value in result_dict.items():
-            chunk = json.dumps({key: value}, ensure_ascii=False)
-            yield f"data: {chunk}\n\n"
-            time.sleep(0.1)  # 선택적: UX 개선용 (클라이언트 처리 시간 고려)
+        text_output = json.dumps({'text': result_str}, ensure_ascii=False)
+        print("🎯 Sending final result:", text_output)
+        yield f"data: {text_output}\n\n"
 
-        yield "data: [DONE]\n\n"
-
-    # 3. 스트리밍 응답
+    # 스트리밍 응답
     return StreamingHttpResponse(
         event_stream(),
         content_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
     )
 
 
@@ -50,14 +49,15 @@ class GeminiStreamingView(APIView):
         try:
             body = request.data
             print("body: ", body)
-            constraints = body.get("constraints", "")
             user_prompt = body.get("user_prompt", "").strip()
             product1 = body.get("product1", "")
             product2 = body.get("product2", "")
+            constraints = body.get("chunk_constraint", "")
+            chunk_type = body.get("chunk_type", "")
 
             if not user_prompt:
                 return Response({"error": "Prompt is required"}, status=status.HTTP_400_BAD_REQUEST)
-
+            
             # 초기 상태 설정
             state = {
                 "user_prompt": user_prompt,
@@ -70,7 +70,7 @@ class GeminiStreamingView(APIView):
                 "error": None,
             }
 
-            # 1. 그래프 1 실행
+            # 1. 그래프1 실행
             app = create_data_processing_graph()
             result = app.invoke(state)
 
@@ -79,7 +79,7 @@ class GeminiStreamingView(APIView):
 
             final_docs = result["final_docs"]  # 참조할 데이터
 
-            # 2. 그래프 2 실행
+            # 2. 그래프2 실행
             prompt_app = create_ai_response_graph()
 
             # 초기 상태
@@ -87,16 +87,7 @@ class GeminiStreamingView(APIView):
                 "constraints": constraints,
                 "user_prompt": user_prompt,
                 "embedded_data": final_docs,
-                # "objective": "strength",
-                # "constraints": {
-                #    "R_1_1": {"max_length": 250, "format": "타사 비교했을 때 자사 제품의 강점 설명"},
-                #    "R_1_2": {"max_length": 10, "format": "Apple 회사명 '~사'로 줄인 것 알려줘. 예를 들어, 회사명이 Hyundai일 경우 'H사'만 응답해."}
-                # },
             }
-
-            prompt_result = prompt_app.invoke(prompt_state)
-
-            print("result[context]: ", prompt_result["result"])  # AI 답변
 
         except Exception as e:
             import traceback, sys
@@ -104,5 +95,5 @@ class GeminiStreamingView(APIView):
             traceback.print_exc(file=sys.stderr)
             return Response({"error": f"Invalid input: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        #return Response(prompt_result["result"])
         return stream_prompt_result(prompt_app=prompt_app, prompt_state=prompt_state)
+ 

@@ -1,15 +1,16 @@
-import os
 import json
+import os
 import re
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from dotenv import load_dotenv
 from langchain.embeddings.base import Embeddings
 from langchain_chroma import Chroma
-from sentence_transformers import SentenceTransformer
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import AIMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from sentence_transformers import SentenceTransformer
+
 # ==========================================================================================
 # 환경 설정
 # ==========================================================================================
@@ -70,6 +71,12 @@ class GeminiTestView(APIView):
     def post(self, request):
         # 프롬프트
         user_prompt = request.data.get("user_prompt", "")
+        # 프롬프트 고유 코드번호
+        prompt_code = request.data.get("prompt_code", "")
+        # 목표 포맷
+        target_output_format = request.data.get("output_format", "")
+        # 상품 카테고리
+        product_category = request.data.get("product_category", "")
         # 자사 데이터
         review_data1 = vectordb(request.data.get('product1', ''))
         # 타사 데이터

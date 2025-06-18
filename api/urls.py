@@ -8,12 +8,12 @@ from .views import (
     DeleteUserView,
     UpdateUserView,
 )
-from prompts.views import GeminiStreamingView
-from prompts.router import register_prompt_routes
+
+
 from reports.router import register_report_routes
 
 router = DefaultRouter()
-register_prompt_routes(router)
+
 register_report_routes(router)
 
 urlpatterns = [
@@ -23,6 +23,4 @@ urlpatterns = [
     path("del/", DeleteUserView.as_view(), name="delete-account"),
     path("update/", UpdateUserView.as_view(), name="update-account"),
     path("", include(router.urls)),
-    # path("ai/streaming/", gemini_streaming, name="gemini_streaming"),
-    path("prompt/test/", GeminiStreamingView.as_view()),
 ]

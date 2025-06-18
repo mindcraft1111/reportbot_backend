@@ -1,4 +1,3 @@
-
 import os
 import json
 from rest_framework.views import APIView
@@ -49,9 +48,8 @@ def vectordb(id):
 gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
 
 
-
 # ==========================================================================================
-# Gemini 응답처리
+# 실제 응답처리
 # ==========================================================================================
 class GeminiTestView(APIView):
 
@@ -91,5 +89,4 @@ class GeminiTestView(APIView):
             return Response({"data": parsed})
         except json.JSONDecodeError:
             return Response({"data": content})
-
 

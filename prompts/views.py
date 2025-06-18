@@ -1,184 +1,92 @@
-import uuid
-from django.utils import timezone
-from django.http import JsonResponse
-
-from api.models import ReportTemplate, Prompt, PromptTest
-
-from rest_framework import status
-from rest_framework import viewsets
+import os
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from langchain_google_genai import ChatGoogleGenerativeAI
-from .serializers import PromptSerializer, PromptTestSerializer
 from dotenv import load_dotenv
-from .llm.gemini_ import analyze_review_with_gemini
-
-
+from langchain.embeddings.base import Embeddings
+from langchain_chroma import Chroma
+from sentence_transformers import SentenceTransformer
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import AIMessage
+# ==========================================================================================
+# 환경 설정
+# ==========================================================================================
 load_dotenv()
+os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 
-# 채팅에 사용할 모델
-model = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
+# ==========================================================================================
+# 임베딩 모델 설정
+# ==========================================================================================
+class SentenceTransformerEmbeddings(Embeddings):
+    def __init__(self, model):
+        self.model = model
+
+    def embed_documents(self, texts):
+        return self.model.encode(texts, show_progress_bar=False).tolist()
+
+    def embed_query(self, text):
+        return self.model.encode([text], show_progress_bar=False)[0].tolist()
+
+embedding_model = SentenceTransformer("intfloat/multilingual-e5-large-instruct")
+embeddings = SentenceTransformerEmbeddings(embedding_model)
+
+# ==========================================================================================
+# 벡터DB 로딩 함수
+# ==========================================================================================
+def vectordb(id):
+    print("제품 id 확인 :", id)
+    product = f"./vectordb/reviews/product_{id}"
+    vectorstore = Chroma(persist_directory=product, embedding_function=embeddings, collection_name=f"reviews_product_{id}")
+    retriever = vectorstore.as_retriever()
+    # 디비에서 가져온거 확인
+    # results = vectorstore._collection.get(include=["documents"], limit=5)
+    # for i, doc in enumerate(results["documents"]):
+    #     print(f"[{i+1}] {doc[:200]}...")
+    return retriever
+
+# gemini모델 생성
+gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
 
 
-class PromptViewset(viewsets.ModelViewSet):
-    queryset = Prompt.objects.all()
-    serializer_class = PromptSerializer
+# ==========================================================================================
+# 실제 응답처리
+# ==========================================================================================
+class GeminiTestView(APIView):
+
+    def post(self, request):
+        # 프롬프트
+        user_question = request.data.get("user_prompt", "")
+        # 자사 데이터
+        review_data1 = vectordb(request.data.get('product1', ''))
+        # 타사 데이터
+        review_data2 = vectordb(request.data.get("product2", ""))
+
+        # 문서 추출 ([:] 슬라이싱으로 문서 갯수 지정)
+        docs1 = review_data1.get_relevant_documents(user_question)[:]
+        docs2 = review_data2.get_relevant_documents(user_question)[:]
+        # 텍스트만 추출
+        review_text1 = "\n".join([doc.page_content for doc in docs1])
+        review_text2 = "\n".join([doc.page_content for doc in docs2])
 
 
-class PromptTestViewset(viewsets.ModelViewSet):
-    queryset = PromptTest.objects.all()
-    serializer_class = PromptTestSerializer
+        question = f"""
+        요청사항 : {user_question}
+        자사 데이터 : {review_text1}
+        타사 데이터 : {review_text2}
+        조건 : 현재 제공된 데이터만으로는 이런말 하지말고 요청사항에 대해서만 대답해줘
+        """
+        response = gemini.invoke(question)
+        
+        if isinstance(response, AIMessage):
+            content = response.content
+        else:
+            content = str(response)
 
-
-##################################################################
-# 테스트용
-##################################################################
-class PromptAnalyzeAPIView(APIView):
-    def post(self, request, *args, **kwargs):
-        input_prompt = request.data.get("input_prompt")
-        if not input_prompt:
-            return Response(
-                {"error": "input_prompt is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        print("🔥 Gemini 응답 content:", repr(content))
 
         try:
-            result = analyze_review_with_gemini(model, input_prompt)
-            return Response({"result": result})
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            parsed = json.loads(content)
+            return Response({"data": parsed})
+        except json.JSONDecodeError:
+            return Response({"data": content})
 
-
-##################################################################
-# 테스트용
-##################################################################
-def create_sample_report_template(request):
-    if request.method == "GET":
-        template_data = {
-            "sections": [
-                {
-                    "id": "title",
-                    "label": "리포트 제목",
-                    "type": "text",
-                    "constraints": {"max_length": 30, "must_end_with": "명사"},
-                    "description": "헤드라인 형식으로 작성. 주제를 잘 드러낼 것",
-                },
-                {
-                    "id": "summary",
-                    "label": "요약",
-                    "type": "text",
-                    "constraints": {
-                        "max_length": 200,
-                        "tone": "중립",
-                        "style": "bullet",
-                    },
-                    "description": "자사와 경쟁사 제품 리뷰를 한눈에 비교할 수 있도록 핵심만 요약",
-                },
-            ]
-        }
-
-        obj = ReportTemplate.objects.create(
-            id=uuid.uuid4(),
-            name="헤드폰 리뷰 분석 템플릿 (GET 테스트용)",
-            structure_json=template_data,
-        )
-
-        return JsonResponse(
-            {
-                "message": "템플릿이 성공적으로 생성되었습니다.",
-                "template_id": str(obj.id),
-                "template_name": obj.name,
-            }
-        )
-    else:
-        return JsonResponse({"error": "GET 요청만 허용됩니다."}, status=405)
-
-
-def create_structured_prompts(request):
-    if request.method == "GET":
-        try:
-            template = ReportTemplate.objects.latest("updated_at")
-        except ReportTemplate.DoesNotExist:
-            return JsonResponse(
-                {"error": "ReportTemplate이 존재하지 않습니다."}, status=400
-            )
-
-        structure = template.structure_json.get("sections", [])
-        prompts = []
-
-        for section in structure[:10]:  # 최대 10개만 생성
-            section_id = section.get("id")
-            label = section.get("label", "")
-            description = section.get("description", "")
-            constraints = section.get("constraints", {})
-
-            # constraint 설명 생성
-            constraint_summary = []
-            if "max_length" in constraints:
-                constraint_summary.append(f"{constraints['max_length']}자 이내")
-            if "must_end_with" in constraints:
-                constraint_summary.append(f"{constraints['must_end_with']}로 끝나야 함")
-            if "tone" in constraints:
-                constraint_summary.append(f"{constraints['tone']} 어조")
-            if "style" in constraints:
-                constraint_summary.append(f"{constraints['style']} 형식")
-            if "sentence_limit" in constraints:
-                constraint_summary.append(f"최대 {constraints['sentence_limit']}문장")
-
-            constraint_text = ", ".join(constraint_summary)
-
-            prompt_text = f"""
-                {label} 항목에 대한 내용을 생성해줘.
-                설명: {description}
-                작성 조건: {constraint_text if constraint_text else '제한 없음'}
-                """.strip()
-
-            prompts.append(
-                Prompt(
-                    id=uuid.uuid4(),
-                    template=template,
-                    section_id=section_id,
-                    name=label,
-                    prompt_text=prompt_text,
-                    created_at=timezone.now(),
-                )
-            )
-
-        Prompt.objects.bulk_create(prompts)
-
-        return JsonResponse(
-            {
-                "message": f"{len(prompts)}개의 프롬프트가 생성되었습니다.",
-                "template_id": str(template.id),
-                "prompt_ids": [str(p.id) for p in prompts],
-            }
-        )
-
-    return JsonResponse({"error": "GET 요청만 허용됩니다."}, status=405)
-
-
-# 프롬프트 응답 받아오기 테스트
-def analyze_all_prompts(request):
-    if request.method != "GET":
-        return JsonResponse({"error": "GET 요청만 허용됩니다."}, status=405)
-
-    prompts = Prompt.objects.all()[:10]  # 예시로 상위 10개만 처리
-    results = []
-
-    for prompt in prompts:
-        try:
-            result = analyze_review_with_gemini(model, prompt.prompt_text)
-            results.append(
-                {
-                    "prompt_id": str(prompt.id),
-                    "section_id": prompt.section_id,
-                    "prompt_text": prompt.prompt_text,
-                    "response": result,
-                }
-            )
-        except Exception as e:
-            results.append({"prompt_id": str(prompt.id), "error": str(e)})
-
-    return JsonResponse({"results": results})

@@ -1,5 +1,7 @@
 import os
 import json
+import re
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from dotenv import load_dotenv
@@ -51,6 +53,14 @@ gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
 # ==========================================================================================
 # 실제 응답처리
 # ==========================================================================================
+def clean_markdown(text):
+    # 마크다운 기호 제거
+    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)   # 굵은 글씨
+    text = re.sub(r"\*(.*?)\*", r"\1", text)       # 기울임 글씨
+    text = re.sub(r"#+ ", "", text)                # 제목 표시 ##, ###
+    text = text.replace("\\n", "\n")               # 문자열로 인식된 \n을 실제 줄바꿈으로
+    return text.strip()
+
 class GeminiTestView(APIView):
 
     def post(self, request):
@@ -82,11 +92,13 @@ class GeminiTestView(APIView):
         else:
             content = str(response)
 
-        print("🔥 Gemini 응답 content:", repr(content))
+        # 마크다운/특수기호 제거 처리
+        cleaned_content = clean_markdown(content)
+        print("✅ cleaned content:", cleaned_content)
 
         try:
-            parsed = json.loads(content)
+            parsed = json.loads(cleaned_content)
             return Response({"data": parsed})
         except json.JSONDecodeError:
-            return Response({"data": content})
+            return Response({"data": cleaned_content})
 

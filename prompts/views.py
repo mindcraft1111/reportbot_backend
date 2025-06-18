@@ -46,14 +46,9 @@ def vectordb(id):
     #     print(f"[{i+1}] {doc[:200]}...")
     return retriever
 
-# gemini모델 생성
-gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
-
-
-# ==========================================================================================
-# 실제 응답처리
-# ==========================================================================================
 def clean_markdown(text):
+    # 코드 블록 (```json ... ```) 제거
+    text = re.sub(r"```json\s*(.*?)```", r"\1", text, flags=re.DOTALL)
     # 마크다운 기호 제거
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)   # 굵은 글씨
     text = re.sub(r"\*(.*?)\*", r"\1", text)       # 기울임 글씨
@@ -61,44 +56,83 @@ def clean_markdown(text):
     text = text.replace("\\n", "\n")               # 문자열로 인식된 \n을 실제 줄바꿈으로
     return text.strip()
 
+
+
+# ==========================================================================================
+# 실제 응답처리
+# ==========================================================================================
+
+# gemini모델 생성
+gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
+
 class GeminiTestView(APIView):
 
     def post(self, request):
         # 프롬프트
-        user_question = request.data.get("user_prompt", "")
+        user_prompt = request.data.get("user_prompt", "")
         # 자사 데이터
         review_data1 = vectordb(request.data.get('product1', ''))
         # 타사 데이터
         review_data2 = vectordb(request.data.get("product2", ""))
 
-        # 문서 추출 ([:] 슬라이싱으로 문서 갯수 지정)
-        docs1 = review_data1.get_relevant_documents(user_question)[:]
-        docs2 = review_data2.get_relevant_documents(user_question)[:]
+        # 문서 추출
+        docs1 = review_data1.get_relevant_documents(user_prompt)
+        docs2 = review_data2.get_relevant_documents(user_prompt)
         # 텍스트만 추출
         review_text1 = "\n".join([doc.page_content for doc in docs1])
         review_text2 = "\n".join([doc.page_content for doc in docs2])
 
+        # 그래프 답변용
+        is_graph_request = "그래프" in user_prompt or "시각화" in user_prompt
+        # ─────────────────────────────────────────────
+        #  그래프 요청일 경우: 벡터DB 문서 추출 + JSON 파싱
+        # ─────────────────────────────────────────────
+        if is_graph_request:
+            
+            prompt = f"""
+            요청사항: {user_prompt}
+            자사 리뷰:
+            {review_text1}
+
+            타사 리뷰:
+            {review_text2}
+
+            위 데이터를 바탕으로 그래프 시각화를 위한 핵심 수치를 JSON 형식으로 추출해줘.
+            예시: {{"category": ["디자인", "성능", "가격"], "my_product": [3.5, 4.1, 2.8], "competitor": [4.2, 4.0, 3.1]}}
+            단, 설명 없이 JSON만 반환해줘.
+            """
+
+            response = gemini.invoke(prompt)
+            content = response.content if isinstance(response, AIMessage) else str(response)
+            print("🔥 RAW Gemini 응답:", repr(content))
+
+            # 마크다운 제거
+            cleaned = clean_markdown(content)
+
+            try:
+                parsed_json = json.loads(cleaned)
+                return Response({"graph_data": parsed_json})
+            except json.JSONDecodeError:
+                return Response({
+                    "graph_data": None,
+                    "error": "JSON 파싱 실패",
+                    "raw_output": cleaned
+                })
+
+        # ─────────────────────────────────────────────
+        #  일반 질의일 경우: 문서 조합 + 요약 응답
+        # ─────────────────────────────────────────────
 
         question = f"""
-        요청사항 : {user_question}
+        요청사항 : {user_prompt}
         자사 데이터 : {review_text1}
         타사 데이터 : {review_text2}
         조건 : 현재 제공된 데이터만으로는 이런말 하지말고 요청사항에 대해서만 대답해줘
         """
+
         response = gemini.invoke(question)
-        
-        if isinstance(response, AIMessage):
-            content = response.content
-        else:
-            content = str(response)
-
-        # 마크다운/특수기호 제거 처리
-        cleaned_content = clean_markdown(content)
-        print("✅ cleaned content:", cleaned_content)
-
-        try:
-            parsed = json.loads(cleaned_content)
-            return Response({"data": parsed})
-        except json.JSONDecodeError:
-            return Response({"data": cleaned_content})
+        content = response.content if isinstance(response, AIMessage) else str(response)
+        cleaned = clean_markdown(content)
+        print("Gemini 응답:", cleaned)
+        return Response({"data": cleaned})
 

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import pandas as pd
 
 from dotenv import load_dotenv
 from langchain.embeddings.base import Embeddings
@@ -10,12 +11,22 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from sentence_transformers import SentenceTransformer
+from sqlalchemy import create_engine
 
 # ==========================================================================================
 # 환경 설정
 # ==========================================================================================
 load_dotenv()
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
+
+# =============================================
+# MySQL 연결 설정
+# =============================================
+user = os.getenv("DB_USER")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("SERVER_HOST")
+port = "3306"
+database = os.getenv("DB_NAME")
 
 # ==========================================================================================
 # 임베딩 모델 설정
@@ -36,17 +47,18 @@ embeddings = SentenceTransformerEmbeddings(embedding_model)
 # ==========================================================================================
 # 벡터DB 로딩 함수
 # ==========================================================================================
-def vectordb(id):
+def vectordb(id, b_retriever):
     print("제품 id 확인 :", id)
     product = f"./vectordb/reviews/product_{id}"
     vectorstore = Chroma(persist_directory=product, embedding_function=embeddings, collection_name=f"reviews_product_{id}")
-    retriever = vectorstore.as_retriever()
-    # 디비에서 가져온거 확인
-    # results = vectorstore._collection.get(include=["documents"], limit=5)
-    # for i, doc in enumerate(results["documents"]):
-    #     print(f"[{i+1}] {doc[:200]}...")
-    return retriever
-
+    if b_retriever == True:
+        retriever = vectorstore.as_retriever()
+        return retriever
+    else :
+        metadata = vectorstore._collection.get(include=["metadatas", "documents"])
+        metadata_map = {doc: meta for doc, meta in zip(metadata["documents"], metadata["metadatas"])}
+        return metadata_map
+    
 def clean_markdown(text):
     # 코드 블록 (```json ... ```) 제거
     text = re.sub(r"```json\s*(.*?)```", r"\1", text, flags=re.DOTALL)
@@ -57,14 +69,24 @@ def clean_markdown(text):
     text = text.replace("\\n", "\n")               # 문자열로 인식된 \n을 실제 줄바꿈으로
     return text.strip()
 
+# ==========================================================================================
+# MySQL에서 product 정보 로드
+# ==========================================================================================
+def load_product_info(product_id):
+    engine = create_engine(
+        f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4"
+    )
+    query = f"SELECT * FROM products WHERE id IN ({product_id})"
+    products_df = pd.read_sql(query, con=engine)
 
+    return products_df
 
 # ==========================================================================================
 # 실제 응답처리
 # ==========================================================================================
 
 # gemini모델 생성
-gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
+gemini = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 
 class GeminiTestView(APIView):
 
@@ -73,14 +95,23 @@ class GeminiTestView(APIView):
         user_prompt = request.data.get("user_prompt", "")
         # 프롬프트 고유 코드번호
         prompt_code = request.data.get("prompt_code", "")
-        # 목표 포맷
-        target_output_format = request.data.get("output_format", "")
         # 상품 카테고리
         product_category = request.data.get("product_category", "")
-        # 자사 데이터
-        review_data1 = vectordb(request.data.get('product1', ''))
-        # 타사 데이터
-        review_data2 = vectordb(request.data.get("product2", ""))
+        # JSON 응답 구조 정의
+        target_output_format = request.data.get("target_output_format", "")
+
+        # 자사 제품 정보
+        product1 = request.data.get("product1", "")     # ID
+        product1_info = load_product_info(product1)     # 제품
+        review_data1 = vectordb(product1, True)         # 리뷰
+        meta_data1 = vectordb(product1, False)          # 메타
+
+        # 타사 제품 정보
+        product2 = request.data.get("product2", "")     # ID
+        product2_info = load_product_info(product2)     # 제품
+        review_data2 = vectordb(product2, True)         # 리뷰
+        meta_data2 = vectordb(product2, False)          # 메타
+
 
         # 문서 추출
         docs1 = review_data1.get_relevant_documents(user_prompt)
@@ -89,51 +120,15 @@ class GeminiTestView(APIView):
         review_text1 = "\n".join([doc.page_content for doc in docs1])
         review_text2 = "\n".join([doc.page_content for doc in docs2])
 
-        # 그래프 답변용
-        is_graph_request = "그래프" in user_prompt or "시각화" in user_prompt
-        # ─────────────────────────────────────────────
-        #  그래프 요청일 경우: 벡터DB 문서 추출 + JSON 파싱
-        # ─────────────────────────────────────────────
-        if is_graph_request:
-            
-            prompt = f"""
-            요청사항: {user_prompt}
-            자사 리뷰:
-            {review_text1}
-
-            타사 리뷰:
-            {review_text2}
-
-            위 데이터를 바탕으로 그래프 시각화를 위한 핵심 수치를 JSON 형식으로 추출해줘.
-            예시: {{"category": ["디자인", "성능", "가격"], "my_product": [3.5, 4.1, 2.8], "competitor": [4.2, 4.0, 3.1]}}
-            단, 설명 없이 JSON만 반환해줘.
-            """
-
-            response = gemini.invoke(prompt)
-            content = response.content if isinstance(response, AIMessage) else str(response)
-            print("🔥 RAW Gemini 응답:", repr(content))
-
-            # 마크다운 제거
-            cleaned = clean_markdown(content)
-
-            try:
-                parsed_json = json.loads(cleaned)
-                return Response({"graph_data": parsed_json})
-            except json.JSONDecodeError:
-                return Response({
-                    "graph_data": None,
-                    "error": "JSON 파싱 실패",
-                    "raw_output": cleaned
-                })
-
         # ─────────────────────────────────────────────
         #  일반 질의일 경우: 문서 조합 + 요약 응답
         # ─────────────────────────────────────────────
 
         question = f"""
         요청사항 : {user_prompt}
-        자사 데이터 : {review_text1}
-        타사 데이터 : {review_text2}
+        자사 데이터 : {product1_info} + {review_text1} + {meta_data1}
+        타사 데이터 : {product2_info} + {review_text2} + {meta_data2}
+        JSON 응답 구조 : {target_output_format}
         조건 : 현재 제공된 데이터만으로는 이런말 하지말고 요청사항에 대해서만 대답해줘
         """
 

@@ -6,10 +6,11 @@ class ProductCategory(models.TextChoices):
     SKINCARE = ("SKIN", "스킨케어")
     MAKEUP = ("MAKE", "메이크업")
     HAIRCARE = ("HAIR", "헤어케어")
-    PET = ("PET", "반려동물")
-    LIFESTYLE = ("LIFE", "생활용품")
+    PET = ("PET", "고양이 용품")
+    LIFESTYLE = ("LIFE", "생활가전")
     ELECTRONICS = ("ELEC", "전자기기")
-    CAR_ACCESSORY = ("CAR", "차량용품")
+    ELEC_ACCESSORY = ("ELECACC", "헤드폰")
+    CAR_ACCESSORY = ("CAR", "차량용 액세서리")
     ETC = ("ETC", "기타")
 
 

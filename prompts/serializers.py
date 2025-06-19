@@ -3,50 +3,63 @@ from api.models import Prompt, PromptTest
 
 
 class PromptSerializer(serializers.ModelSerializer):
-    section_id = serializers.SerializerMethodField()
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
 
     class Meta:
         model = Prompt
         fields = [
             "id",
-            "name",
-            "section_id",
+            "category_display",
+            "flag",
+            "chunk_code",
+            "value_code",
             "prompt_text",
+            "response_example",
             "created_at"
         ]
+        read_only_fields = ["id", "created_at"]
+
+
+class PromptCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prompt
         exclude = [
             "is_deleted",
             "deleted_at"
         ]
-    
-    def get_section_id(self, obj):
-        return obj.section.section_id if obj.section else None
 
 
-class PromptTestSerializer(serializers.Serializer):
-    reviewer_name = serializers.SerializerMethodField()
-    section_id = serializers.SerializerMethodField()
+class PromptTestSerializer(serializers.ModelSerializer):
+    reviewer_name = serializers.CharField(source="reviewer.user_name", default="None", read_only=True)
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
 
     class Meta:
         model = PromptTest
         fields = [
-            "reviewer_name"
-            "section_id",
-            "prompt_text",
-            "constraint_snapshot",
+            "id",
+            "reviewer_name",
+            "category_display",
+            "chunk_code",
+            "value_code",
             "question",
             "answer",
             "passed",
             "reviewer_comment",
             "tested_at"
         ]
-        exclude = [
-            "is_deleted",
-            "deleted_at"
-        ]
-    
-    def get_reviewer_name(self, obj):
-        return obj.reviewer.user_name if obj.reviewer else "None"
 
-    def get_section_id(self, obj):
-        return obj.section.section_id if obj.section else None
+
+class PromptTestCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PromptTest
+        fields = [
+            "category",
+            "chunk_code",
+            "value_code",
+            "question",
+            "answer",
+            "passed",
+            "reviewer_comment",
+            "tested_at"
+        ]

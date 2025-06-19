@@ -11,10 +11,12 @@ from .views import (
 
 
 from reports.router import register_report_routes
+from prompts.router import register_prompt_routes
 
 router = DefaultRouter()
 
 register_report_routes(router)
+register_prompt_routes(router)
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),

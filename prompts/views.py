@@ -7,9 +7,22 @@ from langchain.embeddings.base import Embeddings
 from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from sentence_transformers import SentenceTransformer
+
+from api.models import Prompt, PromptTest
+from api.models.utils.response import api_response
+from .serializers import (
+    PromptSerializer,
+    PromptCreateSerializer,
+    PromptTestSerializer,
+    PromptTestCreateSerializer
+)
+
 
 # ==========================================================================================
 # 환경 설정
@@ -58,13 +71,14 @@ def clean_markdown(text):
     return text.strip()
 
 
-
 # ==========================================================================================
 # 실제 응답처리
 # ==========================================================================================
 
+
 # gemini모델 생성
 gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.3)
+
 
 class GeminiTestView(APIView):
 
@@ -143,3 +157,105 @@ class GeminiTestView(APIView):
         print("Gemini 응답:", cleaned)
         return Response({"data": cleaned})
 
+
+class PromptViewset(viewsets.ModelViewSet):
+    queryset = Prompt.objects.all()
+    serializer_class = PromptSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return PromptCreateSerializer
+
+        return PromptSerializer
+    
+    @action(detail=False, methods=["post"], url_path="approve-test")
+    def approve_test(self, request):
+        test_id = request.data.get("id")
+        if not test_id:
+            return api_response(code=-1, msg="테스트 프롬프트 id가 필요합니다.", status_code=400)
+
+        try:
+            test = PromptTest.objects.get(id=test_id)
+        except PromptTest.DoesNotExist:
+            return api_response(code=-1, msg="해당 테스트가 존재하지 않습니다.", status_code=404)
+
+        # PromptTest 기반으로 Prompt 생성
+        prompt = Prompt.objects.create(
+            category=test.category,
+            flag="text", # 추후 수정
+            chunk_code=test.chunk_code,
+            value_code=test.value_code,
+            prompt_text=test.question,
+            response_example=test.answer
+        )
+
+        # passed 처리
+        test.passed = True
+        test.save(update_fields=["passed"])
+
+        # 응답
+        return api_response(
+            msg="Prompt로 등록되었습니다.", data=PromptSerializer(prompt).data, status_code=201)
+
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        print("serializer = ", serializer)
+        print("serializer = ", self.get_serializer)
+        print("data: ", request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return api_response(dat=serializer.data, status=201)
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return api_response(data=serializer.data)
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return api_response(data=serializer.data)
+
+
+class PromptTestViewset(viewsets.ModelViewSet):
+    queryset = PromptTest.objects.all()
+    serializer_class = PromptTestSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return PromptTestCreateSerializer
+        return PromptTestSerializer
+
+    def create(self, request, *args, **kwargs):
+        create_serializer = self.get_serializer(data=request.data)
+        create_serializer.is_valid(raise_exception=True)
+        prompt_test = create_serializer.save(reviewer=request.user)
+
+        response_serializer = PromptTestSerializer(prompt_test)
+        return api_response(data=response_serializer.data, status_code=201)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return api_response(data=serializer.data)
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return api_response(data=serializer.data)
+    

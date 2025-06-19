@@ -64,7 +64,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=15
+        minutes=720
     ),  # Access Token의 유효 기간을 15분으로 설정합니다.
     "REFRESH_TOKEN_LIFETIME": timedelta(
         days=7

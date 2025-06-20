@@ -5,8 +5,10 @@ import re
 import pandas as pd
 from dotenv import load_dotenv
 from langchain.embeddings.base import Embeddings
+from langchain.output_parsers import PydanticOutputParser
 from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage
+from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -19,12 +21,14 @@ from sqlalchemy import create_engine
 from api.models import Prompt, PromptTest
 from api.models.utils.response import api_response
 
+from .parser_classes import PARSER_REGISTRY
 from .serializers import (
     PromptCreateSerializer,
     PromptSerializer,
     PromptTestCreateSerializer,
     PromptTestSerializer,
 )
+from .topicModeling import TopicModeling
 
 # ==========================================================================================
 # 환경 설정
@@ -105,6 +109,7 @@ def load_product_info(product_id):
 
     return products_df
 
+
 # ==========================================================================================
 # r_4_1, r_5_2 그래프 총 별점 기반 긍부정 분석
 # ==========================================================================================
@@ -113,8 +118,8 @@ def vote_graph(prompt_code, product_id, id):
     df = pd.read_csv(f"./csv/{product_id}.csv")
 
     # 2. '부정' (1, 2)과 '긍정' (4, 5)으로 분류
-    negative_votes = df[df['VOTE'].isin([1, 2])].shape[0]
-    positive_votes = df[df['VOTE'].isin([4, 5])].shape[0]
+    negative_votes = df[df["VOTE"].isin([1, 2])].shape[0]
+    positive_votes = df[df["VOTE"].isin([4, 5])].shape[0]
 
     # 총 유효 투표 수
     total_valid_votes = negative_votes + positive_votes
@@ -127,25 +132,26 @@ def vote_graph(prompt_code, product_id, id):
         negative_percentage = 0.0
         positive_percentage = 0.0
 
-    if prompt_code=="C041":
-        result={"r_4_1_1":f"{positive_percentage:.1f}", "r_4_1_2":f"{negative_percentage:.1f}"}
+    if prompt_code == "C041":
+        result = {
+            "r_4_1_1": f"{positive_percentage:.1f}",
+            "r_4_1_2": f"{negative_percentage:.1f}",
+        }
         return result
-    
-    if prompt_code=="C051":
-            if id == 1:
-                positive_percentages = [f"{positive_percentage:.1f}"]
-                negative_percentages = [f"{negative_percentage:.1f}"]
-                return 0
-            if id == 2:
-                positive_percentages.append(f"{positive_percentage:.1f}")
-                negative_percentages.append(f"{negative_percentage:.1f}")
-                
-                result = {
-                    "r_5_2_1": positive_percentages,  
-                    "r_5_2_2": negative_percentages   
-                }
-                return result
-        
+
+    if prompt_code == "C051":
+        if id == 1:
+            positive_percentages = [f"{positive_percentage:.1f}"]
+            negative_percentages = [f"{negative_percentage:.1f}"]
+            return 0
+        if id == 2:
+            positive_percentages.append(f"{positive_percentage:.1f}")
+            negative_percentages.append(f"{negative_percentage:.1f}")
+
+            result = {"r_5_2_1": positive_percentages, "r_5_2_2": negative_percentages}
+            return result
+
+
 # ==========================================================================================
 # r_6_1_2, r_6_1_3 그래프 함수
 # ==========================================================================================
@@ -213,6 +219,7 @@ def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
 
     return result
 
+
 # ==========================================================================================
 # 실제 응답처리
 # ==========================================================================================
@@ -220,26 +227,24 @@ def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
 gemini = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 
 class GeminiTestView(APIView):
-
     def post(self, request):
-
-        # 프롬프트
+        # ─────────────────────────────────────────────────────────
+        # 1단계: 입력 데이터 가져오기
+        # ─────────────────────────────────────────────────────────
         user_prompt = request.data.get("user_prompt", "")
-        # 프롬프트 고유 코드번호
         prompt_code = request.data.get("prompt_code", "")
-        # 상품 카테고리
         product_category = request.data.get("product_category", "")
-        # JSON 응답 구조 정의
         target_output_format = request.data.get("target_output_format", "")
+        product1 = request.data.get("product1", "")
+        product2 = request.data.get("product2", "")
 
-        # 자사 제품 정보
-        product1 = request.data.get("product1", "")     # ID
-        product2 = request.data.get("product2", "")     # ID
+        # ─────────────────────────────────────────────────────────
+        # 2단계: 특정 프롬프트 코드 처리 (예: 투표 그래프)
+        # ─────────────────────────────────────────────────────────
         if prompt_code == "C041":
-            C041 = vote_graph(prompt_code, product1)
-            return Response({"data": C041})
-
+            return Response({"data": vote_graph(prompt_code, product1, 1)})
         if prompt_code == "C051":
+<<<<<<< HEAD
             C051_1 = vote_graph(prompt_code, product1, 1)
             C051_2 = vote_graph(prompt_code, product2, 2)
             return Response({"data": C051_2})
@@ -251,36 +256,104 @@ class GeminiTestView(APIView):
         product1_info = load_product_info(product1)     # 제품
         review_data1 = vectordb(product1, True)         # 리뷰
         meta_data1 = vectordb(product1, False)          # 메타       
+=======
+            vote_graph(prompt_code, product1, 1)  # 응답에 사용되진 않음
+            return Response({"data": vote_graph(prompt_code, product2, 2)})
+>>>>>>> 8fe5bea6196c62ca32162b6fb44f1af886ff1de9
 
-        product2_info = load_product_info(product2)     # 제품
-        review_data2 = vectordb(product2, True)         # 리뷰
-        meta_data2 = vectordb(product2, False)          # 메타
+        # ─────────────────────────────────────────────────────────
+        # 3단계: 제품 데이터 불러오기
+        # ─────────────────────────────────────────────────────────
+        product1_info = load_product_info(product1)
+        product2_info = load_product_info(product2)
+        review_data1 = vectordb(product1, True)
+        review_data2 = vectordb(product2, True)
+        meta_data1 = vectordb(product1, False)
+        meta_data2 = vectordb(product2, False)
 
-        # 문서 추출
-        docs1 = review_data1.get_relevant_documents(user_prompt)
-        docs2 = review_data2.get_relevant_documents(user_prompt)
-        # 텍스트만 추출
+        docs1 = review_data1.invoke(user_prompt)
+        docs2 = review_data2.invoke(user_prompt)
         review_text1 = "\n".join([doc.page_content for doc in docs1])
         review_text2 = "\n".join([doc.page_content for doc in docs2])
 
-        # ─────────────────────────────────────────────
-        #  일반 질의일 경우: 문서 조합 + 요약 응답
-        # ─────────────────────────────────────────────
-#          + {keyword_csv1}
-#  + {keyword_csv2}
-        question = f"""
-        요청사항 : {user_prompt}
-        자사 데이터 : {product1_info} + {review_text1} + {meta_data1}
-        타사 데이터 : {product2_info} + {review_text2} + {meta_data2}
-        JSON 응답 구조 : {target_output_format}
-        조건 : 현재 제공된 데이터만으로는 이런말 하지말고 요청사항에 대해서만 대답해줘
-        """
+        # ─────────────────────────────────────────────────────────
+        # 4단계: 토픽 모델링 수행
+        # ─────────────────────────────────────────────────────────
+        # csvfile = f"./reviews_csv/{product1}.csv"
+        # modeler = TopicModeling(
+        #     csv_file=csvfile,
+        #     extra_stopwords=['잘','거','제가','더','사용','너무','넘','있어요','쓰고','정말','수','정도','있습니다','있는','ㅎㅎ','다','되고','쓸','좋을','듣기','그냥','샀는데','건']
+        # )
+        # modeler.run()
 
-        response = gemini.invoke(question)
-        content = response.content if isinstance(response, AIMessage) else str(response)
-        cleaned = clean_markdown(content)
-        print("Gemini 응답:", cleaned)
-        return Response({"data": cleaned})
+        # ─────────────────────────────────────────────────────────
+        # 5단계: 파서가 없는 경우 기본 응답 처리
+        # ─────────────────────────────────────────────────────────
+        parser_class = PARSER_REGISTRY.get(prompt_code)
+
+        if not parser_class:
+            print(
+                f"🙄 {prompt_code} :에 대한 pydantic_output_parser가 존재하지 않습니다. 대신에 target_output_format을 사용하여 계속 진행합니다."
+            )
+
+            question = f"""
+            요청사항 : {user_prompt}
+            자사 데이터 : {product1_info} + {review_text1} + {meta_data1}
+            타사 데이터 : {product2_info} + {review_text2} + {meta_data2}
+            JSON 응답 구조 : {target_output_format}
+            조건 : 현재 제공된 데이터만으로는 이런말 하지말고 요청사항에 대해서만 대답해줘
+            """
+            response = gemini.invoke(question)
+            content = (
+                response.content if isinstance(response, AIMessage) else str(response)
+            )
+            cleaned = clean_markdown(content)
+
+            return Response({"data": cleaned})
+
+        # ─────────────────────────────────────────────────────────
+        # 6단계: 파서가 있는 경우 체이닝 및 응답 파싱
+        # ─────────────────────────────────────────────────────────
+        parser = PydanticOutputParser(pydantic_object=parser_class)
+        prompt = PromptTemplate(
+            template="""
+            요청사항 : {user_prompt}
+            자사 데이터 : {product1_info} + {review_text1} + {meta_data1}
+            타사 데이터 : {product2_info} + {review_text2} + {meta_data2}
+            JSON 응답 구조 : {format_instructions}
+            조건 : 현재 제공된 데이터만으로는 이런말 하지말고 요청사항에 대해서만 대답해줘
+            """,
+            input_variables=[
+                "user_prompt",
+                "product1_info",
+                "review_text1",
+                "meta_data1",
+                "product2_info",
+                "review_text2",
+                "meta_data2",
+            ],
+            partial_variables={"format_instructions": parser.get_format_instructions()},
+        )
+
+        chain = prompt | gemini | parser
+        response = chain.invoke(
+            {
+                "user_prompt": user_prompt,
+                "product1_info": product1_info,
+                "review_text1": review_text1,
+                "meta_data1": meta_data1,
+                "product2_info": product2_info,
+                "review_text2": review_text2,
+                "meta_data2": meta_data2,
+            }
+        )
+
+        try:
+            json_data = response.model_dump()
+        except AttributeError:
+            json_data = response.dict()
+
+        return Response({"data": json_data})
 
 
 class PromptViewset(viewsets.ModelViewSet):

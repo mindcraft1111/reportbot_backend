@@ -105,6 +105,7 @@ def load_product_info(product_id):
 
     return products_df
 
+
 # ==========================================================================================
 # r_4_1, r_5_2 그래프 총 별점 기반 긍부정 분석
 # ==========================================================================================
@@ -113,8 +114,8 @@ def vote_graph(prompt_code, product_id, id):
     df = pd.read_csv(f"./csv/{product_id}.csv")
 
     # 2. '부정' (1, 2)과 '긍정' (4, 5)으로 분류
-    negative_votes = df[df['VOTE'].isin([1, 2])].shape[0]
-    positive_votes = df[df['VOTE'].isin([4, 5])].shape[0]
+    negative_votes = df[df["VOTE"].isin([1, 2])].shape[0]
+    positive_votes = df[df["VOTE"].isin([4, 5])].shape[0]
 
     # 총 유효 투표 수
     total_valid_votes = negative_votes + positive_votes
@@ -127,31 +128,33 @@ def vote_graph(prompt_code, product_id, id):
         negative_percentage = 0.0
         positive_percentage = 0.0
 
-    if prompt_code=="C041":
-        result={"r_4_1_1":f"{positive_percentage:.1f}", "r_4_1_2":f"{negative_percentage:.1f}"}
+    if prompt_code == "C041":
+        result = {
+            "r_4_1_1": f"{positive_percentage:.1f}",
+            "r_4_1_2": f"{negative_percentage:.1f}",
+        }
         return result
-    
-    if prompt_code=="C051":
-            if id == 1:
-                positive_percentages = [f"{positive_percentage:.1f}"]
-                negative_percentages = [f"{negative_percentage:.1f}"]
-                return 0
-            if id == 2:
-                positive_percentages.append(f"{positive_percentage:.1f}")
-                negative_percentages.append(f"{negative_percentage:.1f}")
-                
-                result = {
-                    "r_5_2_1": positive_percentages,  
-                    "r_5_2_2": negative_percentages   
-                }
-                return result
-        
+
+    if prompt_code == "C051":
+        if id == 1:
+            positive_percentages = [f"{positive_percentage:.1f}"]
+            negative_percentages = [f"{negative_percentage:.1f}"]
+            return 0
+        if id == 2:
+            positive_percentages.append(f"{positive_percentage:.1f}")
+            negative_percentages.append(f"{negative_percentage:.1f}")
+
+            result = {"r_5_2_1": positive_percentages, "r_5_2_2": negative_percentages}
+            return result
+
+
 # ==========================================================================================
 # 그래프용 csv load
 # ==========================================================================================
 def load_keyword_csv(product_id):
     df = pd.read_csv(f"./csv/keyword_analysis_product_{product_id}.csv")
     return df
+
 
 # ==========================================================================================
 # 실제 응답처리
@@ -176,24 +179,24 @@ class GeminiTestView(APIView):
         target_output_format = request.data.get("target_output_format", "")
 
         # 자사 제품 정보
-        product1 = request.data.get("product1", "")     # ID
-        product2 = request.data.get("product2", "")     # ID
+        product1 = request.data.get("product1", "")  # ID
+        product2 = request.data.get("product2", "")  # ID
         if prompt_code == "C041":
-            C041 = vote_graph(prompt_code, product1)
+            C041 = vote_graph(prompt_code, product1, 1)
             return Response({"data": C041})
 
         if prompt_code == "C051":
             C051_1 = vote_graph(prompt_code, product1, 1)
             C051_2 = vote_graph(prompt_code, product2, 2)
             return Response({"data": C051_2})
-        
-        product1_info = load_product_info(product1)     # 제품
-        review_data1 = vectordb(product1, True)         # 리뷰
-        meta_data1 = vectordb(product1, False)          # 메타       
 
-        product2_info = load_product_info(product2)     # 제품
-        review_data2 = vectordb(product2, True)         # 리뷰
-        meta_data2 = vectordb(product2, False)          # 메타
+        product1_info = load_product_info(product1)  # 제품
+        review_data1 = vectordb(product1, True)  # 리뷰
+        meta_data1 = vectordb(product1, False)  # 메타
+
+        product2_info = load_product_info(product2)  # 제품
+        review_data2 = vectordb(product2, True)  # 리뷰
+        meta_data2 = vectordb(product2, False)  # 메타
 
         # 문서 추출
         docs1 = review_data1.get_relevant_documents(user_prompt)
@@ -205,8 +208,8 @@ class GeminiTestView(APIView):
         # ─────────────────────────────────────────────
         #  일반 질의일 경우: 문서 조합 + 요약 응답
         # ─────────────────────────────────────────────
-#          + {keyword_csv1}
-#  + {keyword_csv2}
+        #          + {keyword_csv1}
+        #  + {keyword_csv2}
         question = f"""
         요청사항 : {user_prompt}
         자사 데이터 : {product1_info} + {review_text1} + {meta_data1}

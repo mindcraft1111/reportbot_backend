@@ -312,12 +312,12 @@ class GeminiTestView(APIView):
 
             return Response({"data": cleaned})
 
-        # ─────────────────────────────────────────────────────────
+            # ─────────────────────────────────────────────────────────
         # 6단계: 파서가 있는 경우 체이닝 및 응답 파싱
         # ─────────────────────────────────────────────────────────
         parser = PydanticOutputParser(pydantic_object=parser_class)
         prompt = PromptTemplate(
-            template="""
+            template=""" 
             요청사항 : {user_prompt}
             자사 데이터 : {product1_info} + {review_text1} + {meta_data1}
             타사 데이터 : {product2_info} + {review_text2} + {meta_data2}
@@ -337,24 +337,39 @@ class GeminiTestView(APIView):
         )
 
         chain = prompt | gemini | parser
-        response = chain.invoke(
-            {
-                "user_prompt": user_prompt,
-                "product1_info": product1_info,
-                "review_text1": review_text1,
-                "meta_data1": meta_data1,
-                "product2_info": product2_info,
-                "review_text2": review_text2,
-                "meta_data2": meta_data2,
-            }
-        )
 
         try:
-            json_data = response.model_dump()
-        except AttributeError:
-            json_data = response.dict()
+            response = chain.invoke(
+                {
+                    "user_prompt": user_prompt,
+                    "product1_info": product1_info,
+                    "review_text1": review_text1,
+                    "meta_data1": meta_data1,
+                    "product2_info": product2_info,
+                    "review_text2": review_text2,
+                    "meta_data2": meta_data2,
+                }
+            )
 
-        return Response({"data": json_data})
+            try:
+                json_data = response.model_dump()
+            except AttributeError:
+                json_data = response.dict()
+
+            return Response({"data": json_data})
+
+        except Exception as e:
+            import traceback
+
+            print("⚠️ 체인 실행 또는 유효성 검사 실패:", traceback.format_exc())
+            return Response(
+                {
+                    "error": "AI 응답을 처리하는 도중 오류가 발생했습니다.",
+                    "details": str(e),
+                    "hint": "프롬프트 응답이 예상된 JSON 구조와 일치하지 않았을 수 있습니다.",
+                },
+                status=400,
+            )
 
 
 class PromptViewset(viewsets.ModelViewSet):

@@ -166,7 +166,7 @@ def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
                 '의', '를', '을', '에', '가', '과', '와', '도', '는', '은', '이다', '다', '하다',
                 '있다', '없다', '되다', '아니다', '같다', '다른', '또', '더', '매우', '정말',
                 '진짜', '너무', '조금', '많이', '잘', '못', '안', '않', '하지', '해서', '해도',
-                '하면', '하고', '하는', '한', '할', '함', '했', '해', '합니다', '입니다',
+                '하면', '하고', '하는', '한', '할', '함', '했', '해', '합니다', '입니다', '좋네요',
                 '있습니다', '없습니다', '됩니다', '좋습니다', '젠하이저', '한고연몰', '구매했어요',
                 '브라운', '신지모루', '그냥', '좀', '약간', '좋고', '디자인도', '믿고', '쓰는'
                 '같아요', '헤드폰', '모래', '청소기', '물티슈', '거치대', '같습니다', '있어요',
@@ -175,9 +175,9 @@ def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
                 '벌써', '이미', '드디어', '마침내', '계속', '항상', '가끔', '때때로', '자주',
                 '거의', '전혀', '완전', '상당히', '꽤', '상당', '전체', '부분', '일부', '나머지',
                 '다음', '이전', '처음', '마지막', '중간', '사이', '앞', '뒤', '위', '아래', '쓰는',
-                '내', '외', '안', '밖', '쪽', '편', '면', '부', '곳', '데', '바', '채', '개',
-                '번', '회', '차', '도', '등', '같은', '다른', '새로운', '오래된', '큰', '작은',
-                '높은', '낮은', '빠른', '느린', '강한', '좋은', '나쁜', '맞는', '틀린', '흡입력도'
+                '내', '외', '안', '밖', '쪽', '편', '면', '부', '곳', '데', '바', '채', '개', '물티슈는', '아기',
+                '번', '회', '차', '도', '등', '같은', '다른', '새로운', '오래된', '큰', '작은', '배송',
+                '높은', '낮은', '빠른', '느린', '강한', '좋은', '나쁜', '맞는', '틀린', '흡입력도', 
                 '있어요', '쓰고', '감사합니다', '아메솔', '있습니다', '먼지가', '좋아서',' 사용하고',
                 '음질도', '음질은', '흡입력이', '있어서', '디베아', '차이슨', '생각보다', '청소기가', '아주', '같아요'
             }
@@ -225,6 +225,108 @@ def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
 
     return result
 
+def get_review_counts_by_year(product1_id: int, product2_id: int):
+    from langchain_experimental.agents.agent_toolkits import create_csv_agent
+    llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+    """
+    두 제품의 2023년, 2024년 리뷰 개수를 에이전트를 통해 추출하고,
+    자사 희망 리뷰 수를 LLM에게 요청하여 프론트엔드 형식에 맞춰 반환합니다.
+
+    Args:
+        product1_id (int): 자사 제품의 CSV 파일명 (확장자 제외)
+        product2_id (int): 경쟁사 제품의 CSV 파일명 (확장자 제외)
+
+    Returns:
+        dict: 프론트엔드가 요구하는 형식의 json 데이터 (r_12_1_1, r_12_1_2, r_12_1_3)
+              r_12_1_1: [자사 2023년 리뷰수, 자사 2024년 리뷰수, 자사 2025년 리뷰수 목표치]
+              r_12_1_2: [경쟁사 2023년 리뷰수, 경쟁사 2024년 리뷰수, 경쟁사 2025년 리뷰수 목표치]
+    """
+
+    # 에이전트 생성 도우미 함수 (코드 중복 방지)
+    def create_agent_for_product(llm_model, product_id):
+        csv_file_path = f"./csv/{product_id}.csv"
+        if not os.path.exists(csv_file_path):
+            raise FileNotFoundError(f"오류: CSV 파일 '{csv_file_path}'을(를) 찾을 수 없습니다.")
+
+        print(f"'{product_id}.csv' 파일을 기반으로 에이전트를 생성 중입니다...")
+        agent = create_csv_agent(
+            llm_model,
+            csv_file_path,
+            verbose=True, # 디버깅을 위해 True 유지
+            allow_dangerous_code=True
+        )
+        print(f"'{product_id}.csv' 에이전트 생성 완료.")
+        return agent
+
+    # LLM 응답에서 2023년, 2024년 리뷰 개수 및 예상치 파싱 함수
+    def parse_llm_response(agent_response: str) -> tuple[int, int, int]:
+        count_2023 = 0
+        count_2024 = 0
+        target_reviews = 0 # 예상치 기본값 0
+
+        # 2023년 리뷰 개수 추출
+        match_2023 = re.search(r'2023년 리뷰 개수:\s*(\d+)', agent_response)
+        if match_2023:
+            count_2023 = int(match_2023.group(1))
+
+        # 2024년 리뷰 개수 추출
+        match_2024 = re.search(r'2024년 리뷰 개수:\s*(\d+)', agent_response)
+        if match_2024:
+            count_2024 = int(match_2024.group(1))
+
+        # 희망 리뷰 수 추출 (LLM이 '희망 리뷰 수'라고 명시적으로 응답할 경우)
+        match_target = re.search(r'(희망 리뷰 수|예상 리뷰 수):\s*(\d+)', agent_response)
+        if match_target:
+            target_reviews = int(match_target.group(2))
+        else:
+            # LLM이 예상 리뷰 수를 명시적으로 말해주지 않아도, 2024년 수치 기반으로 계산
+            # 이 로직은 LLM의 예측이 아닌, 우리가 설정한 30% 증가 로직입니다.
+            target_reviews = int(count_2024 * 1.3) # 30% 증가
+
+        return count_2023, count_2024, target_reviews
+
+    # --- 자사 제품 에이전트 실행 ---
+    try:
+        self_agent = create_agent_for_product(llm, product1_id)
+        # LLM에게 30% 증가한 예상 리뷰 수를 계산해달라고 명확히 지시
+        self_query = (
+            "전체 리뷰 중 '날짜' 컬럼을 기준으로 2023년도와 2024년도 리뷰의 갯수를 세어서 출력해줘. "
+            "그리고 2024년 리뷰 개수에서 30% 증가한 값을 예상 리뷰 수로 제안해줘. "
+            "답변은 '2023년 리뷰 개수: [숫자]개, 2024년 리뷰 개수: [숫자]개, 예상 리뷰 수: [숫자]개' 형식으로 해줘."
+        )
+        print(f"\n자사 에이전트 질문: {self_query}")
+        self_response = self_agent.run(self_query)
+        print(f"자사 에이전트 답변: {self_response}")
+        self_2023_count, self_2024_count, self_target = parse_llm_response(self_response)
+    except Exception as e:
+        print(f"자사 제품 데이터 처리 중 오류 발생: {e}")
+        self_2023_count, self_2024_count, self_target = 0, 0, 0 # 오류 시 기본값
+
+    # --- 경쟁사 제품 에이전트 실행 ---
+    competitor_2023_count, competitor_2024_count, competitor_target = 0, 0, 0 # 기본값 초기화
+    try:
+        competitor_agent = create_agent_for_product(llm, product2_id)
+        # 경쟁사 LLM에게도 30% 증가한 예상 리뷰 수를 계산해달라고 명확히 지시
+        competitor_query = (
+            "전체 리뷰 중 '날짜' 컬럼을 기준으로 2023년도와 2024년도 리뷰의 갯수를 세어서 출력해줘. "
+            "그리고 2024년 리뷰 개수에서 30% 증가한 값을 예상 리뷰 수로 제안해줘. "
+            "답변은 '2023년 리뷰 개수: [숫자]개, 2024년 리뷰 개수: [숫자]개, 희망 리뷰 수: [숫자]개' 형식으로 해줘."
+        )
+        print(f"\n경쟁사 에이전트 질문: {competitor_query}")
+        competitor_response = competitor_agent.run(competitor_query)
+        print(f"경쟁사 에이전트 답변: {competitor_response}")
+        competitor_2023_count, competitor_2024_count, competitor_target = parse_llm_response(competitor_response)
+    except Exception as e:
+        print(f"경쟁사 제품 데이터 처리 중 오류 발생: {e}")
+
+    result = {
+        "r_12_1_1": [self_2023_count, self_2024_count, self_target],
+        "r_12_1_2": [competitor_2023_count, competitor_2024_count, competitor_target]
+    }
+
+    print("\n--- 최종 반환 결과 ---")
+    print(result)
+    return result
 
 # ==========================================================================================
 # 실제 응답처리
@@ -256,11 +358,12 @@ class GeminiTestView(APIView):
         
         if prompt_code == "C061":
             C061 = get_top_words_in_reviews(product1, product2)
-            return Response({"data": C061})
+            return Response({"data": C061})    
 
-        product1_info = load_product_info(product1)     # 제품
-        review_data1 = vectordb(product1, True)         # 리뷰
-        meta_data1 = vectordb(product1, False)          # 메타       
+        if prompt_code == "C121":
+            C121 = get_review_counts_by_year(product1, product2)
+            
+            return Response({"data":C121})
 
         # ─────────────────────────────────────────────────────────
         # 3단계: 제품 데이터 불러오기

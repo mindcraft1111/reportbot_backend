@@ -26,6 +26,7 @@ from .serializers import (
     PromptTestSerializer,
 )
 
+from .topicModeling import TopicModeling
 # ==========================================================================================
 # 환경 설정
 # ==========================================================================================
@@ -204,6 +205,17 @@ class GeminiTestView(APIView):
         # 텍스트만 추출
         review_text1 = "\n".join([doc.page_content for doc in docs1])
         review_text2 = "\n".join([doc.page_content for doc in docs2])
+
+        # csv파일 가져오기
+        csvfile = f"./reviews_csv/{product1}.csv"
+        # 토픽 모델링
+        custom_stopwords = ['잘', '거', '제가', '더', '사용','너무','넘','있어요','쓰고','정말','쓰고','수','정도','있습니다','있는',
+                            'ㅎㅎ','다','되고','쓸','좋을','듣기','그냥','샀는데','건']
+        modeler = TopicModeling(
+            csv_file = csvfile,
+            extra_stopwords=custom_stopwords
+        )
+        modeler.run()
 
         # ─────────────────────────────────────────────
         #  일반 질의일 경우: 문서 조합 + 요약 응답

@@ -110,13 +110,17 @@ class TopicModeling:
         # PNG 저장 (Selenium 사용)
         png_path = os.path.join(self.output_dir, "lda_visualization.png")
         options = Options()
-        options.headless = True
+        options.add_argument('--headless=new')  # 최신 방식
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-infobars')
+        options.add_argument('--window-size=1200,900')
+
         driver = webdriver.Chrome(options=options)
-        driver.set_window_size(1200, 900)
         driver.get("file://" + os.path.abspath(html_path))
-        time.sleep(2)
+        time.sleep(2)  # 렌더링 대기
         driver.save_screenshot(png_path)
         driver.quit()
         print(f"✅ pyLDAvis PNG 저장 완료: {png_path}")

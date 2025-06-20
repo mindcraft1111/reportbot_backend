@@ -72,7 +72,7 @@ def vectordb(id, b_retriever):
         collection_name=f"reviews_product_{id}",
     )
     if b_retriever == True:
-        retriever = vectorstore.as_retriever()
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 30})
         return retriever
     else:
         metadata = vectorstore._collection.get(include=["metadatas", "documents"])
@@ -107,6 +107,37 @@ def load_product_info(product_id):
 
 
 # ==========================================================================================
+# r_4_1 그래프
+# ==========================================================================================
+def vote_graph(product_id):
+    df = pd.read_csv(f"./csv/{product_id}.csv")
+
+    # 2. '부정' (1, 2)과 '긍정' (4, 5)으로 분류
+    negative_votes = df[df['VOTE'].isin([1, 2])].shape[0]
+    positive_votes = df[df['VOTE'].isin([4, 5])].shape[0]
+
+    # 총 유효 투표 수
+    total_valid_votes = negative_votes + positive_votes
+
+    # 3. 비율 계산 (퍼센트)
+    if total_valid_votes > 0:
+        negative_percentage = (negative_votes / total_valid_votes) * 100
+        positive_percentage = (positive_votes / total_valid_votes) * 100
+    else:
+        negative_percentage = 0.0
+        positive_percentage = 0.0
+
+    result={"r_4_1_1":f"{positive_percentage:.1f}", "r_4_1_2":f"{negative_percentage:.1f}"}
+    return (result)
+
+# ==========================================================================================
+# 그래프용 csv load
+# ==========================================================================================
+def load_keyword_csv(product_id):
+    df = pd.read_csv(f"./csv/keyword_analysis_product_{product_id}.csv")
+    return df
+
+# ==========================================================================================
 # 실제 응답처리
 # ==========================================================================================
 
@@ -118,6 +149,7 @@ gemini = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 class GeminiTestView(APIView):
 
     def post(self, request):
+
         # 프롬프트
         user_prompt = request.data.get("user_prompt", "")
         # 프롬프트 고유 코드번호
@@ -128,16 +160,19 @@ class GeminiTestView(APIView):
         target_output_format = request.data.get("target_output_format", "")
 
         # 자사 제품 정보
-        product1 = request.data.get("product1", "")  # ID
-        product1_info = load_product_info(product1)  # 제품
-        review_data1 = vectordb(product1, True)  # 리뷰
-        meta_data1 = vectordb(product1, False)  # 메타
-
+        product1 = request.data.get("product1", "")     # ID
+        if prompt_code == "C041":
+            a = vote_graph(product1)
+            return Response({"data": a})
+        product1_info = load_product_info(product1)     # 제품
+        review_data1 = vectordb(product1, True)         # 리뷰
+        meta_data1 = vectordb(product1, False)          # 메타
+        
         # 타사 제품 정보
-        product2 = request.data.get("product2", "")  # ID
-        product2_info = load_product_info(product2)  # 제품
-        review_data2 = vectordb(product2, True)  # 리뷰
-        meta_data2 = vectordb(product2, False)  # 메타
+        product2 = request.data.get("product2", "")     # ID
+        product2_info = load_product_info(product2)     # 제품
+        review_data2 = vectordb(product2, True)         # 리뷰
+        meta_data2 = vectordb(product2, False)          # 메타
 
         # 문서 추출
         docs1 = review_data1.get_relevant_documents(user_prompt)
@@ -149,7 +184,8 @@ class GeminiTestView(APIView):
         # ─────────────────────────────────────────────
         #  일반 질의일 경우: 문서 조합 + 요약 응답
         # ─────────────────────────────────────────────
-
+#          + {keyword_csv1}
+#  + {keyword_csv2}
         question = f"""
         요청사항 : {user_prompt}
         자사 데이터 : {product1_info} + {review_text1} + {meta_data1}

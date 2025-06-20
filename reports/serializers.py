@@ -20,6 +20,7 @@ class UserMiniSerializer(serializers.ModelSerializer):
 
 class ProjectsSerializer(serializers.ModelSerializer):
     user = UserMiniSerializer(source="id", read_only=True)
+    report_list = serializers.SerializerMethodField()
     product_1_name = serializers.CharField(source="product_1.product_name", read_only=True)
     product_2_name = serializers.CharField(source="product_2.product_name", read_only=True)
     
@@ -32,12 +33,17 @@ class ProjectsSerializer(serializers.ModelSerializer):
             "product_1_name",
             "product_2_name",
             "description",
+            "report_list",
             "status",
             "status_changed_at",
             "created_at",
             "updated_at"
         ]
         read_only_fields = ["project_id", "status", "status_changed_at", "created_at", "updated_at"]
+
+    def get_report_list(self, obj):
+        results = obj.reports.all()
+        return ReportMiniSerializer(results, many=True).data
 
 
 class ProjectsCreateSerializer(serializers.ModelSerializer):
@@ -70,6 +76,7 @@ class ProjectsUpdateSerializer(serializers.ModelSerializer):
             "project_title",
             "description",
         ]
+
 
 class ReportTemplateSerializer(SoftDeleteSafeModelSerializer):
     class Meta(SoftDeleteSafeModelSerializer.Meta):
@@ -112,6 +119,17 @@ class ReportCreateSerializer(serializers.ModelSerializer):
             "category",
             "title",
             "summary",
+            "created_at"
+        ]
+        read_only_fields = ["id", "created_at"]
+
+
+class ReportMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = [
+            "id",
+            "title",
             "created_at"
         ]
         read_only_fields = ["id", "created_at"]

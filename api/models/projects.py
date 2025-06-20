@@ -91,10 +91,9 @@ class ReportSection(SoftDeleteMixin):
 # 리포트 결과(섹션별 나눠서 저장)
 class ReportSectionResult(ReportStatusMixin, SoftDeleteMixin):
     report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="results")
-    prompt = models.ForeignKey("Prompt", on_delete=models.CASCADE, null=True, related_name="results")
+    page_title = models.CharField(max_length=100, null=True, verbose_name="페이지네임")
     section_code = models.CharField(max_length=100, verbose_name="섹션코드") 
-    label = models.CharField(max_length=200, verbose_name="섹션제목")
-    content = models.TextField(verbose_name="생성된 응답")
+    content = models.JSONField(null=True, verbose_name="생성된 응답")
     constraint_snapshot = models.JSONField(blank=True, null=True, verbose_name="생성시점 제약조건") # snapshot
     created_at = models.DateTimeField(auto_now_add=True)
 

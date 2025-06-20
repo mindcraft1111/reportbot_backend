@@ -141,25 +141,28 @@ class ReportSectionSerializer(SoftDeleteSafeModelSerializer):
 
 
 class ReportSectionResultMiniSerializer(serializers.ModelSerializer):
+    c_code = serializers.CharField(source="section_code")
+    
     class Meta:
         model = ReportSectionResult
         fields = [
-            "section_code",
-            "label",
+            "id",
+            "page_title",
+            "c_code",
             "content"
         ]
 
 
 class ReportSectionResultSerializer(serializers.ModelSerializer):
+    c_code = serializers.CharField(source="section_code")
+
     class Meta:
         model = ReportSectionResult
         fields = [
             "id",
             "report",
-            "prompt",
-            "section",
-            "section_code",
-            "label",
+            "page_title",
+            "c_code",
             "content",
             "constraint_snapshot",
             "created_at"
@@ -168,13 +171,14 @@ class ReportSectionResultSerializer(serializers.ModelSerializer):
 
 
 class ReportSectionResultCreateSerializer(serializers.ModelSerializer):
+    c_code = serializers.CharField(source="section_code")
+    
     class Meta:
         model = ReportSectionResult
         fields = [
             "report",
-            "section",
-            "section_code",
-            "label",
+            "page_title"
+            "c_code",
             "content",
             "constraint_snapshot",
             "created_at"

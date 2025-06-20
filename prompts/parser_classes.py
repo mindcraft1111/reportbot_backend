@@ -89,15 +89,15 @@ class C051(BaseModel):
 
 
 class C052(BaseModel):
-    r_5_3: str = Field(description="competitor_name", max_length=20)
-    r_5_4: str = Field(description="competitor_strength_1", max_length=16)
-    r_5_5: str = Field(description="competitor_strength_2", max_length=16)
-    r_5_6: str = Field(description="competitor_strength_3", max_length=16)
+    r_5_2: str = Field(description="competitor_name", max_length=20)
+    r_5_3: str = Field(description="competitor_strength_1", max_length=16)
+    r_5_4: str = Field(description="competitor_strength_2", max_length=16)
+    r_5_5: str = Field(description="competitor_strength_3", max_length=16)
 
 
 
 class C053(BaseModel):
-    r_5_7: str = Field(description="competitor_summary", max_length=166)
+    r_5_6: str = Field(description="competitor_summary", max_length=166)
 
 
 # ✅ Full parser registry

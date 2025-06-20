@@ -277,6 +277,7 @@ class PromptTestViewset(viewsets.ModelViewSet):
     queryset = PromptTest.objects.all()
     serializer_class = PromptTestSerializer
     permission_classes = (IsAuthenticated,)
+    lookup_field = "chunk_code"
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -290,6 +291,12 @@ class PromptTestViewset(viewsets.ModelViewSet):
 
         response_serializer = PromptTestSerializer(prompt_test)
         return api_response(data=response_serializer.data, status_code=201)
+
+    @action(detail=False, methods=["get"], url_path="(?P<chunk_code>C[^/.]+)")
+    def get_by_chunk_code(self, request, chunk_code=None):
+        queryset = self.get_queryset().filter(chunk_code=chunk_code)
+        serializer = self.get_serializer(queryset, many=True)
+        return api_response(data=serializer.data)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

@@ -4,11 +4,11 @@ from .utils.soft_delete import SoftDeleteMixin
 
 class ChatSession(SoftDeleteMixin):
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="sessions")
-    sessioin_id = models.CharField(max_length=100, unique=True, verbose_name="세션ID")
+    session_id = models.CharField(max_length=100, unique=True, verbose_name="세션ID")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.user_name} - {self.sessioin_id}"
+        return f"{self.user.user_name} - {self.session_id}"
 
 
 class ChatMessage(SoftDeleteMixin):

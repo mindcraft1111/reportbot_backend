@@ -1,0 +1,35 @@
+# Dockerfile.base
+FROM python:3.11-slim
+
+# 시스템 패키지 설치
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    libffi-dev \
+    libssl-dev \
+    libmariadb-dev \
+    pkg-config \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# 환경 변수
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PIP_DEFAULT_TIMEOUT=100
+ENV PIP_RETRIES=10
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# 작업 디렉토리 및 pip 최신화
+WORKDIR /app
+RUN pip install --upgrade pip
+
+# requirements 복사 및 설치
+COPY requirements/ ./requirements/
+
+# 캐시 최적화를 위해 base, inference 분리 설치
+RUN echo "📦 installing base..." && pip install --no-cache-dir --prefer-binary -r requirements/base2.txt
+RUN echo "🧠 installing inference..." && pip install --no-cache-dir --prefer-binary -r requirements/inference2.txt
+
+# 개발 환경용 패키지는 따로 빌드 시점에 선택 가능
+RUN pip install --no-cache-dir -r requirements/dev2.txt

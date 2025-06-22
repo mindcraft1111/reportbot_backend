@@ -2,11 +2,12 @@ import json, os
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework.views import APIView
 from langchain.memory import RedisChatMessageHistory
 
 from api.models.users import Users
 from api.models.chatbot import ChatSession, ChatMessage, LangGraphLog
+
+from chatbot.graph import create_graph
 
 
 def save_message_to_db(user: Users, session_id: str, sender: str, content: str):
@@ -30,6 +31,7 @@ def get_or_create_session(user):
     session, _ = ChatSession.objects.get_or_create(user=user, session_id=session_id)
     return session, session_id
 
+
 @csrf_exempt
 def chat_view(request):
     if request.method != "POST":
@@ -38,6 +40,8 @@ def chat_view(request):
     try:
         data = json.loads(request.body)
         user_input = data.get("message", "")
+        product1 = data.get("product1", "")
+        product2 = data.get("product2", "")
 
         # 가정: request.user 사용 (로그인된 사용자 기준)
         user = request.user if request.user.is_authenticated else Users.objects.first()  # 테스트용 fallback
@@ -52,7 +56,18 @@ def chat_view(request):
         ChatMessage.objects.create(session=session, sender="user", content=user_input)
 
         # 3. LangGraph 또는 AI 응답 (여기선 단순 응답 예시)
-        ai_response = f"'{user_input}'에 대한 응답입니다."  # 실제로는 LangGraph 처리 결과
+        # ai_response = f"'{user_input}'에 대한 응답입니다."  # 실제로는 LangGraph 처리 결과
+
+        # 3. LangGraph 실행
+        graph = create_graph()
+        result = graph.invoke({
+            "session_id": session_id,
+            "question": user_input,
+            "product1": product1,
+            "product2": product2
+        })
+        
+        ai_response = result.get("answer", "답변이 없습니다.")
 
         # 4. AI 응답 저장 (Redis + DB)
         history.add_ai_message(ai_response)

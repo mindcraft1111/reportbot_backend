@@ -332,7 +332,7 @@ def get_review_counts_by_year(product1_id: int, product2_id: int):
 # 실제 응답처리
 # ==========================================================================================
 # gemini모델 생성
-gemini = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
+gemini = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
 class GeminiTestView(APIView):
     def post(self, request):
@@ -345,7 +345,7 @@ class GeminiTestView(APIView):
         target_output_format = request.data.get("target_output_format", "")
         product1 = request.data.get("product1", "")
         product2 = request.data.get("product2", "")
-
+        retriever_keyword = request.data.get("retriever_keyword", "")
         # ─────────────────────────────────────────────────────────
         # 2단계: 특정 프롬프트 코드 처리 (예: 투표 그래프)
         # ─────────────────────────────────────────────────────────
@@ -375,8 +375,21 @@ class GeminiTestView(APIView):
         meta_data1 = vectordb(product1, False)
         meta_data2 = vectordb(product2, False)
 
-        docs1 = review_data1.invoke(user_prompt)
-        docs2 = review_data2.invoke(user_prompt)
+        # ─────────────────────────────────────────────────────────
+        # 키워드 기반 vs. 사용자 프롬프트 기반 검색 조건 분기
+        # ─────────────────────────────────────────────────────────
+        if retriever_keyword.strip():
+            docs1 = review_data1.get_relevant_documents(retriever_keyword)
+            docs2 = review_data2.get_relevant_documents(retriever_keyword)
+            print(f"✅ retriever_keyword({retriever_keyword})가 제공됐습니다. 벡터스토어 검색에 이 키워드를 사용합니다.")
+            print(docs1)
+            print(docs2)
+        else:
+            print("❌ retriever_keyword 제공되지 않았습니다. 벡터스토어 검색에 user_prompt를 사용합니다.")
+            docs1 = review_data1.invoke(user_prompt)
+            docs2 = review_data2.invoke(user_prompt)
+            print(docs1)
+            print(docs2)
 
         # retriever에서 검색한 review 데이터를 json 형태로 serialize
         # 응답에 함께 보내기 위함

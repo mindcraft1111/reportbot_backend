@@ -1,22 +1,20 @@
-version: "3.9"
-
 services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: viewboth_backend
-    volumes:
-      - .:/backend
-      - ./vectordb:/vectordb
-      - ./models:/backend/models
-      
-    ports:
-      - "11234:11234"
-    env_file:
-      - .env
-    depends_on:
-      - redis
+  #web:
+  #  build:
+  #    context: .
+  #    dockerfile: Dockerfile
+  #  container_name: viewboth_backend
+  #  volumes:
+  #    - .:/backend
+  #    - ./vectordb:/vectordb
+  #    - ./models:/backend/models
+  #    
+  #  ports:
+  #    - "11234:11234"
+  #  env_file:
+  #    - .env
+  #  depends_on:
+  #    - redis
   
 
   redis:

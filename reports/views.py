@@ -12,6 +12,7 @@ from .serializers import (
     ReportTemplateSerializer,
     ReportSectionSerializer,
     ReportSectionResultSerializer,
+    ReportSectionResultCreateSerializer,
     ProductsSerializer,
     ReviewsSerializer,
     UserSerializer
@@ -110,10 +111,22 @@ class ReportSectionViewSet(viewsets.ModelViewSet):
     serializer_class = ReportSectionSerializer
     permission_classes = (IsAuthenticated,)
 
+
 class ReportSectionResultViewSet(viewsets.ModelViewSet):
     queryset = ReportSectionResult.objects.all()
     serializer_class = ReportSectionResultSerializer
     permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ReportSectionResultCreateSerializer
+        return ReportSectionResultSerializer
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return api_response(data=serializer.data, status_code=201)
 
 
 class ProductsViewSet(viewsets.ModelViewSet):

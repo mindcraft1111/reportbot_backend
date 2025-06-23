@@ -2,7 +2,8 @@ import json, os
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from langchain.memory import RedisChatMessageHistory
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_community.chat_message_histories import RedisChatMessageHistory
 
 from api.models.users import Users
 from api.models.chatbot import ChatSession, ChatMessage, LangGraphLog
@@ -50,13 +51,10 @@ def chat_view(request):
         session, session_id = get_or_create_session(user)
         redis_url = f"redis://{os.getenv('REDIS_HOST', 'localhost')}:{os.getenv('REDIS_PORT', '6379')}"
         history = RedisChatMessageHistory(session_id=session_id, url=redis_url)
-
+        
         # 2. 유저 메시지 저장 (Redis + DB)
-        history.add_user_message(user_input)
+        history.add_message(HumanMessage(content=user_input))
         ChatMessage.objects.create(session=session, sender="user", content=user_input)
-
-        # 3. LangGraph 또는 AI 응답 (여기선 단순 응답 예시)
-        # ai_response = f"'{user_input}'에 대한 응답입니다."  # 실제로는 LangGraph 처리 결과
 
         # 3. LangGraph 실행
         graph = create_graph()
@@ -70,12 +68,15 @@ def chat_view(request):
         ai_response = result.get("answer", "답변이 없습니다.")
 
         # 4. AI 응답 저장 (Redis + DB)
-        history.add_ai_message(ai_response)
+        history.add_message(AIMessage(content=ai_response.content))
         ChatMessage.objects.create(session=session, sender="ai", content=ai_response)
-
+        messages = history.messages
+        for m in messages:
+            print(f"{m.type}: {m.content}")
+        
         return JsonResponse({
             "status": "success",
-            "response": ai_response,
+            "response": ai_response.content,
         })
 
     except Exception as e:

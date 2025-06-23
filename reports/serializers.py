@@ -177,7 +177,7 @@ class ReportSectionResultCreateSerializer(serializers.ModelSerializer):
         model = ReportSectionResult
         fields = [
             "report",
-            "page_title"
+            "page_title",
             "c_code",
             "content",
             "constraint_snapshot",

@@ -54,13 +54,12 @@ ANSWER_PROMPT = """
 - 리뷰나 피드백을 보여줄 때는 원문 그대로 제공하지 말고, 오타나 띄어쓰기를 자연스럽게 정제하여 전달하세요.
 - 마크다운(Markdown) 문법은 사용하지 마세요. 예: `**굵게**`, `*기울임*` 등의 기호는 쓰지 마세요.
 - 강조가 필요한 경우에도 일반 텍스트만 사용하고, 큰따옴표(" ") 또는 자연스러운 문장으로 전달하세요.
-- 질문이 다소 모호하거나, 주어진 정보만으로는 정확한 답변이 어려울 경우:
-    - 가능한 한 최대한 답변을 시도한 후,
-    - 답변 마지막에 "(단, 제공된 정보로는 일부 해석에 어려움이 있어, 보다 구체적인 질문을 부탁드립니다.)"라는 안내를 덧붙이세요.
 - 반드시 사용자 질문에 대한 응답만 하세요.
 - 불필요한 줄바꿈을 하지 마세요.
     
 ** 모든 답변은 한글로 하세요. **
+** 리뷰나 피드백을 보여줄 때는 절대로 원문 그대로 제공하지 마.
+   리뷰나 피드백의 원문을 오타나 띄어쓰기 오류가 없게 같은 의미로 바꿔서 응답해. **
 
 Context:
 {context}
@@ -71,12 +70,28 @@ Answer:
 """
 
 
-contextualize_q_system_prompt = """You are a question reformulator. 
+contextualize_q_system_prompt2 = """You are a question reformulator. 
 Your job is to rewrite a user question into a standalone question, using the prior chat history as context. 
 
 Only rewrite the question. 
 Do NOT ask for clarification.
 Do NOT respond with anything other than the rewritten question.
+
+If the question is already self-contained, return it as is.
+
+Rewritten Standalone Question:
+"""
+
+contextualize_q_system_prompt = """
+You are a question reformulator.
+
+Your job is to rewrite a user question into a standalone question by incorporating relevant context from prior chat history.
+
+❗️Important Rules:
+- Preserve the original **intent** of the question (e.g., whether it's asking for a fact, a summary, or a method).
+- DO NOT change the meaning, focus, or purpose of the question.
+- DO NOT ask for clarification.
+- DO NOT return any explanation or additional information—only return the rewritten standalone question.
 
 If the question is already self-contained, return it as is.
 

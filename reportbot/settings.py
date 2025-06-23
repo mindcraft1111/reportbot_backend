@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "prompts",
     "reports",
+    "chatbot",
 ]
 AUTH_USER_MODEL = "api.Users"
 
@@ -127,6 +128,15 @@ DATABASES = {
         },
     }
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379"),
+    }
+}
+
+CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./vectordb")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

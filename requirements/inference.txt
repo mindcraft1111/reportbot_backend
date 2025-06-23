@@ -1,0 +1,7 @@
+gensim==4.3.3
+nltk==3.9.1
+#onnxruntime==1.22.0
+#scikit-learn==1.7.0
+tokenizers==0.21.1
+torch==2.7.1
+tqdm==4.67.1

@@ -25,4 +25,5 @@ urlpatterns = [
     path("del/", DeleteUserView.as_view(), name="delete-account"),
     path("update/", UpdateUserView.as_view(), name="update-account"),
     path("", include(router.urls)),
+    path("chatbot/", include("chatbot.urls")),
 ]

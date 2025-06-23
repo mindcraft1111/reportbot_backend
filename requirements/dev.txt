@@ -1,0 +1,6 @@
+ipython==9.3.0
+ipython_pygments_lexers==1.1.1
+jedi==0.19.2
+matplotlib==3.10.3
+matplotlib-inline==0.1.7
+pyLDAvis==3.4.1

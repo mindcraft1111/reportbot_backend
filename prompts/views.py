@@ -80,7 +80,7 @@ def vectordb(id, b_retriever):
         return retriever
     else:
         metadata = vectorstore._collection.get(include=["metadatas", "documents"])
-        metadata_map = {    
+        metadata_map = {
             doc: meta for doc, meta in zip(metadata["documents"], metadata["metadatas"])
         }
         return metadata_map
@@ -155,51 +155,222 @@ def vote_graph(prompt_code, product_id, id):
 # ==========================================================================================
 # r_6_1_2, r_6_1_3 그래프 함수
 # ==========================================================================================
-# 경쟁사의 reviews 컬럼에서 가장 자주 등장하는 단어들을 반환 
+# 경쟁사의 reviews 컬럼에서 가장 자주 등장하는 단어들을 반환
 import pandas as pd
 from collections import Counter
 import re
 
+
 def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
     stopwords = {
-                '이', '그', '저', '것', '거', '이것', '그것', '저것', '그런', '이런', '저런',
-                '의', '를', '을', '에', '가', '과', '와', '도', '는', '은', '이다', '다', '하다',
-                '있다', '없다', '되다', '아니다', '같다', '다른', '또', '더', '매우', '정말',
-                '진짜', '너무', '조금', '많이', '잘', '못', '안', '않', '하지', '해서', '해도',
-                '하면', '하고', '하는', '한', '할', '함', '했', '해', '합니다', '입니다', '좋네요',
-                '있습니다', '없습니다', '됩니다', '좋습니다', '젠하이저', '한고연몰', '구매했어요',
-                '브라운', '신지모루', '그냥', '좀', '약간', '좋고', '디자인도', '믿고', '쓰는'
-                '같아요', '헤드폰', '모래', '청소기', '물티슈', '거치대', '같습니다', '있어요',
-                '이제', '지금', '오늘', '어제', '내일', '때문', '때문에', '그래서', '그러나',
-                '하지만', '그리고', '또한', '역시', '물론', '당연히', '확실히', '아마', '아직',
-                '벌써', '이미', '드디어', '마침내', '계속', '항상', '가끔', '때때로', '자주',
-                '거의', '전혀', '완전', '상당히', '꽤', '상당', '전체', '부분', '일부', '나머지',
-                '다음', '이전', '처음', '마지막', '중간', '사이', '앞', '뒤', '위', '아래', '쓰는',
-                '내', '외', '안', '밖', '쪽', '편', '면', '부', '곳', '데', '바', '채', '개', '물티슈는', '아기',
-                '번', '회', '차', '도', '등', '같은', '다른', '새로운', '오래된', '큰', '작은', '배송',
-                '높은', '낮은', '빠른', '느린', '강한', '좋은', '나쁜', '맞는', '틀린', '흡입력도', 
-                '있어요', '쓰고', '감사합니다', '아메솔', '있습니다', '먼지가', '좋아서',' 사용하고',
-                '음질도', '음질은', '흡입력이', '있어서', '디베아', '차이슨', '생각보다', '청소기가', '아주', '같아요'
-            }
+        "이",
+        "그",
+        "저",
+        "것",
+        "거",
+        "이것",
+        "그것",
+        "저것",
+        "그런",
+        "이런",
+        "저런",
+        "의",
+        "를",
+        "을",
+        "에",
+        "가",
+        "과",
+        "와",
+        "도",
+        "는",
+        "은",
+        "이다",
+        "다",
+        "하다",
+        "있다",
+        "없다",
+        "되다",
+        "아니다",
+        "같다",
+        "다른",
+        "또",
+        "더",
+        "매우",
+        "정말",
+        "진짜",
+        "너무",
+        "조금",
+        "많이",
+        "잘",
+        "못",
+        "안",
+        "않",
+        "하지",
+        "해서",
+        "해도",
+        "하면",
+        "하고",
+        "하는",
+        "한",
+        "할",
+        "함",
+        "했",
+        "해",
+        "합니다",
+        "입니다",
+        "좋네요",
+        "있습니다",
+        "없습니다",
+        "됩니다",
+        "좋습니다",
+        "젠하이저",
+        "한고연몰",
+        "구매했어요",
+        "브라운",
+        "신지모루",
+        "그냥",
+        "좀",
+        "약간",
+        "좋고",
+        "디자인도",
+        "믿고",
+        "쓰는" "같아요",
+        "헤드폰",
+        "모래",
+        "청소기",
+        "물티슈",
+        "거치대",
+        "같습니다",
+        "있어요",
+        "이제",
+        "지금",
+        "오늘",
+        "어제",
+        "내일",
+        "때문",
+        "때문에",
+        "그래서",
+        "그러나",
+        "하지만",
+        "그리고",
+        "또한",
+        "역시",
+        "물론",
+        "당연히",
+        "확실히",
+        "아마",
+        "아직",
+        "벌써",
+        "이미",
+        "드디어",
+        "마침내",
+        "계속",
+        "항상",
+        "가끔",
+        "때때로",
+        "자주",
+        "거의",
+        "전혀",
+        "완전",
+        "상당히",
+        "꽤",
+        "상당",
+        "전체",
+        "부분",
+        "일부",
+        "나머지",
+        "다음",
+        "이전",
+        "처음",
+        "마지막",
+        "중간",
+        "사이",
+        "앞",
+        "뒤",
+        "위",
+        "아래",
+        "쓰는",
+        "내",
+        "외",
+        "안",
+        "밖",
+        "쪽",
+        "편",
+        "면",
+        "부",
+        "곳",
+        "데",
+        "바",
+        "채",
+        "개",
+        "물티슈는",
+        "아기",
+        "번",
+        "회",
+        "차",
+        "도",
+        "등",
+        "같은",
+        "다른",
+        "새로운",
+        "오래된",
+        "큰",
+        "작은",
+        "배송",
+        "높은",
+        "낮은",
+        "빠른",
+        "느린",
+        "강한",
+        "좋은",
+        "나쁜",
+        "맞는",
+        "틀린",
+        "흡입력도",
+        "있어요",
+        "쓰고",
+        "감사합니다",
+        "아메솔",
+        "있습니다",
+        "먼지가",
+        "좋아서",
+        " 사용하고",
+        "음질도",
+        "음질은",
+        "흡입력이",
+        "있어서",
+        "디베아",
+        "차이슨",
+        "생각보다",
+        "청소기가",
+        "아주",
+        "같아요",
+    }
 
-    df1 = pd.read_csv(f"./csv/{product_id1}.csv", encoding='UTF-8')
-    df2 = pd.read_csv(f"./csv/{product_id2}.csv", encoding='UTF-8')
+    df1 = pd.read_csv(f"./csv/{product_id1}.csv", encoding="UTF-8")
+    df2 = pd.read_csv(f"./csv/{product_id2}.csv", encoding="UTF-8")
 
-    len_df1_reviews = df1['INFO'].dropna().shape[0]
-    len_df2_reviews = df2['INFO'].dropna().shape[0]
+    len_df1_reviews = df1["INFO"].dropna().shape[0]
+    len_df2_reviews = df2["INFO"].dropna().shape[0]
 
     # 더 적은 리뷰 수를 `low_review_count` 변수에 저장
     low_review_count = min(len_df1_reviews, len_df2_reviews)
 
     # 각 데이터프레임에서 `low_review_count` 만큼의 리뷰만 샘플링
-    reviews_text1_sampled = df1['INFO'].dropna().sample(n=low_review_count, random_state=1).astype(str)
-    reviews_text2_sampled = df2['INFO'].dropna().sample(n=low_review_count, random_state=1).astype(str)
+    reviews_text1_sampled = (
+        df1["INFO"].dropna().sample(n=low_review_count, random_state=1).astype(str)
+    )
+    reviews_text2_sampled = (
+        df2["INFO"].dropna().sample(n=low_review_count, random_state=1).astype(str)
+    )
 
-    all_text1 = ' '.join(reviews_text1_sampled).lower()
-    all_text2 = ' '.join(reviews_text2_sampled).lower()
+    all_text1 = " ".join(reviews_text1_sampled).lower()
+    all_text2 = " ".join(reviews_text2_sampled).lower()
 
-    words2 = re.findall(r'[a-zA-Z가-힣0-9]+', all_text2)
-    words2 = [word for word in words2 if len(word) >= min_length and word not in stopwords]
+    words2 = re.findall(r"[a-zA-Z가-힣0-9]+", all_text2)
+    words2 = [
+        word for word in words2 if len(word) >= min_length and word not in stopwords
+    ]
     word_counts2 = Counter(words2)
     top_words2 = word_counts2.most_common(top_n)
 
@@ -208,7 +379,7 @@ def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
     counts_in_product2 = []
 
     for keyword in top_keywords:
-        #pattern = r'\b' + re.escape(keyword) + r'\b'
+        # pattern = r'\b' + re.escape(keyword) + r'\b'
         pattern = re.escape(keyword)
         count1 = int(len(re.findall(pattern, all_text1)))
         counts_in_product1.append(count1)
@@ -219,14 +390,16 @@ def get_top_words_in_reviews(product_id1, product_id2, top_n=7, min_length=2):
     result = {
         "r_6_1_1": top_keywords,
         "r_6_1_2": counts_in_product1,
-        "r_6_1_3": counts_in_product2
+        "r_6_1_3": counts_in_product2,
     }
     print(result)
 
     return result
 
+
 def get_review_counts_by_year(product1_id: int, product2_id: int):
     from langchain_experimental.agents.agent_toolkits import create_csv_agent
+
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
     """
     두 제품의 2023년, 2024년 리뷰 개수를 에이전트를 통해 추출하고,
@@ -246,14 +419,16 @@ def get_review_counts_by_year(product1_id: int, product2_id: int):
     def create_agent_for_product(llm_model, product_id):
         csv_file_path = f"./csv/{product_id}.csv"
         if not os.path.exists(csv_file_path):
-            raise FileNotFoundError(f"오류: CSV 파일 '{csv_file_path}'을(를) 찾을 수 없습니다.")
+            raise FileNotFoundError(
+                f"오류: CSV 파일 '{csv_file_path}'을(를) 찾을 수 없습니다."
+            )
 
         print(f"'{product_id}.csv' 파일을 기반으로 에이전트를 생성 중입니다...")
         agent = create_csv_agent(
             llm_model,
             csv_file_path,
-            verbose=True, # 디버깅을 위해 True 유지
-            allow_dangerous_code=True
+            verbose=True,  # 디버깅을 위해 True 유지
+            allow_dangerous_code=True,
         )
         print(f"'{product_id}.csv' 에이전트 생성 완료.")
         return agent
@@ -262,26 +437,28 @@ def get_review_counts_by_year(product1_id: int, product2_id: int):
     def parse_llm_response(agent_response: str) -> tuple[int, int, int]:
         count_2023 = 0
         count_2024 = 0
-        target_reviews = 0 # 예상치 기본값 0
+        target_reviews = 0  # 예상치 기본값 0
 
         # 2023년 리뷰 개수 추출
-        match_2023 = re.search(r'2023년 리뷰 개수:\s*(\d+)', agent_response)
+        match_2023 = re.search(r"2023년 리뷰 개수:\s*(\d+)", agent_response)
         if match_2023:
             count_2023 = int(match_2023.group(1))
 
         # 2024년 리뷰 개수 추출
-        match_2024 = re.search(r'2024년 리뷰 개수:\s*(\d+)', agent_response)
+        match_2024 = re.search(r"2024년 리뷰 개수:\s*(\d+)", agent_response)
         if match_2024:
             count_2024 = int(match_2024.group(1))
 
         # 희망 리뷰 수 추출 (LLM이 '희망 리뷰 수'라고 명시적으로 응답할 경우)
-        match_target = re.search(r'(희망 리뷰 수|예상 리뷰 수):\s*(\d+)', agent_response)
+        match_target = re.search(
+            r"(희망 리뷰 수|예상 리뷰 수):\s*(\d+)", agent_response
+        )
         if match_target:
             target_reviews = int(match_target.group(2))
         else:
             # LLM이 예상 리뷰 수를 명시적으로 말해주지 않아도, 2024년 수치 기반으로 계산
             # 이 로직은 LLM의 예측이 아닌, 우리가 설정한 30% 증가 로직입니다.
-            target_reviews = int(count_2024 * 1.3) # 30% 증가
+            target_reviews = int(count_2024 * 1.3)  # 30% 증가
 
         return count_2023, count_2024, target_reviews
 
@@ -297,13 +474,19 @@ def get_review_counts_by_year(product1_id: int, product2_id: int):
         print(f"\n자사 에이전트 질문: {self_query}")
         self_response = self_agent.run(self_query)
         print(f"자사 에이전트 답변: {self_response}")
-        self_2023_count, self_2024_count, self_target = parse_llm_response(self_response)
+        self_2023_count, self_2024_count, self_target = parse_llm_response(
+            self_response
+        )
     except Exception as e:
         print(f"자사 제품 데이터 처리 중 오류 발생: {e}")
-        self_2023_count, self_2024_count, self_target = 0, 0, 0 # 오류 시 기본값
+        self_2023_count, self_2024_count, self_target = 0, 0, 0  # 오류 시 기본값
 
     # --- 경쟁사 제품 에이전트 실행 ---
-    competitor_2023_count, competitor_2024_count, competitor_target = 0, 0, 0 # 기본값 초기화
+    competitor_2023_count, competitor_2024_count, competitor_target = (
+        0,
+        0,
+        0,
+    )  # 기본값 초기화
     try:
         competitor_agent = create_agent_for_product(llm, product2_id)
         # 경쟁사 LLM에게도 30% 증가한 예상 리뷰 수를 계산해달라고 명확히 지시
@@ -315,24 +498,28 @@ def get_review_counts_by_year(product1_id: int, product2_id: int):
         print(f"\n경쟁사 에이전트 질문: {competitor_query}")
         competitor_response = competitor_agent.run(competitor_query)
         print(f"경쟁사 에이전트 답변: {competitor_response}")
-        competitor_2023_count, competitor_2024_count, competitor_target = parse_llm_response(competitor_response)
+        competitor_2023_count, competitor_2024_count, competitor_target = (
+            parse_llm_response(competitor_response)
+        )
     except Exception as e:
         print(f"경쟁사 제품 데이터 처리 중 오류 발생: {e}")
 
     result = {
         "r_12_1_1": [self_2023_count, self_2024_count, self_target],
-        "r_12_1_2": [competitor_2023_count, competitor_2024_count, competitor_target]
+        "r_12_1_2": [competitor_2023_count, competitor_2024_count, competitor_target],
     }
 
     print("\n--- 최종 반환 결과 ---")
     print(result)
     return result
 
+
 # ==========================================================================================
 # 실제 응답처리
 # ==========================================================================================
 # gemini모델 생성
 gemini = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+
 
 class GeminiTestView(APIView):
     def post(self, request):
@@ -355,15 +542,15 @@ class GeminiTestView(APIView):
             C051_1 = vote_graph(prompt_code, product1, 1)
             C051_2 = vote_graph(prompt_code, product2, 2)
             return Response({"data": C051_2})
-        
+
         if prompt_code == "C061":
             C061 = get_top_words_in_reviews(product1, product2)
-            return Response({"data": C061})    
+            return Response({"data": C061})
 
         if prompt_code == "C121":
             C121 = get_review_counts_by_year(product1, product2)
-            
-            return Response({"data":C121})
+
+            return Response({"data": C121})
 
         # ─────────────────────────────────────────────────────────
         # 3단계: 제품 데이터 불러오기
@@ -381,20 +568,27 @@ class GeminiTestView(APIView):
         if retriever_keyword.strip():
             docs1 = review_data1.get_relevant_documents(retriever_keyword)
             docs2 = review_data2.get_relevant_documents(retriever_keyword)
-            print(f"✅ retriever_keyword({retriever_keyword})가 제공됐습니다. 벡터스토어 검색에 이 키워드를 사용합니다.")
-            print(docs1)
-            print(docs2)
+            print(
+                f"✅ retriever_keyword({retriever_keyword})가 제공됐습니다. 벡터스토어 검색에 이 키워드를 사용합니다."
+            )
+            # print(docs1)
+            # print(docs2)
         else:
-            print("❌ retriever_keyword 제공되지 않았습니다. 벡터스토어 검색에 user_prompt를 사용합니다.")
-            docs1 = review_data1.invoke(user_prompt)
-            docs2 = review_data2.invoke(user_prompt)
-            print(docs1)
-            print(docs2)
+            print(
+                "❌ retriever_keyword 제공되지 않았습니다. 벡터스토어 검색에 user_prompt를 사용합니다."
+            )
+            docs1 = review_data1.get_relevant_documents(user_prompt)
+            docs2 = review_data2.get_relevant_documents(user_prompt)
+            # print(docs1)
+            # print(docs2)
 
         # retriever에서 검색한 review 데이터를 json 형태로 serialize
         # 응답에 함께 보내기 위함
         serialized_review_data1 = serialize_documents(docs1)
         serialized_review_data2 = serialize_documents(docs2)
+
+        # print("😂", serialized_review_data1)
+        # print("😂", serialized_review_data2)
 
         review_text1 = "\n".join([doc.page_content for doc in docs1])
         review_text2 = "\n".join([doc.page_content for doc in docs2])
@@ -432,7 +626,13 @@ class GeminiTestView(APIView):
             )
             cleaned = clean_markdown(content)
 
-            return Response({"data": cleaned})
+            return Response(
+                {
+                    "data": cleaned,
+                    "review01": serialized_review_data1,
+                    "review02": serialized_review_data2,
+                }
+            )
 
             # ─────────────────────────────────────────────────────────
         # 6단계: 파서가 있는 경우 체이닝 및 응답 파싱
@@ -478,7 +678,13 @@ class GeminiTestView(APIView):
             except AttributeError:
                 json_data = response.dict()
 
-            return Response({"data": json_data, "review01": serialized_review_data1, "review02": serialized_review_data2})
+            return Response(
+                {
+                    "data": json_data,
+                    "review01": serialized_review_data1,
+                    "review02": serialized_review_data2,
+                }
+            )
 
         except Exception as e:
             import traceback
@@ -606,14 +812,10 @@ class PromptTestViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return api_response(data=serializer.data)
-    
+
 
 def serialize_documents(documents):
     return [
-        {
-            "id": doc.id,
-            "metadata": doc.metadata,
-            "page_content": doc.page_content
-        }
+        {"id": doc.id, "metadata": doc.metadata, "page_content": doc.page_content}
         for doc in documents
     ]

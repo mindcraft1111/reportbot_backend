@@ -80,7 +80,7 @@ def vectordb(id, b_retriever):
         return retriever
     else:
         metadata = vectorstore._collection.get(include=["metadatas", "documents"])
-        metadata_map = {
+        metadata_map = {    
             doc: meta for doc, meta in zip(metadata["documents"], metadata["metadatas"])
         }
         return metadata_map
@@ -377,6 +377,12 @@ class GeminiTestView(APIView):
 
         docs1 = review_data1.invoke(user_prompt)
         docs2 = review_data2.invoke(user_prompt)
+
+        # retriever에서 검색한 review 데이터를 json 형태로 serialize
+        # 응답에 함께 보내기 위함
+        serialized_review_data1 = serialize_documents(docs1)
+        serialized_review_data2 = serialize_documents(docs2)
+
         review_text1 = "\n".join([doc.page_content for doc in docs1])
         review_text2 = "\n".join([doc.page_content for doc in docs2])
 
@@ -459,7 +465,7 @@ class GeminiTestView(APIView):
             except AttributeError:
                 json_data = response.dict()
 
-            return Response({"data": json_data})
+            return Response({"data": json_data, "review01": serialized_review_data1, "review02": serialized_review_data2})
 
         except Exception as e:
             import traceback
@@ -587,3 +593,14 @@ class PromptTestViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return api_response(data=serializer.data)
+    
+
+def serialize_documents(documents):
+    return [
+        {
+            "id": doc.id,
+            "metadata": doc.metadata,
+            "page_content": doc.page_content
+        }
+        for doc in documents
+    ]

@@ -13,7 +13,13 @@ class C002(BaseModel):
     r_0_2: str = Field(description="report_objective", max_length=20)
 
 
-# 02
+# 02 OVERVIEW PAGE
+    
+class C021(BaseModel):
+    r_2_1: str = Field(description="analysis_subject", max_length=157, min_length=100)
+
+class C022(BaseModel):
+    r_2_2: str = Field(description="analysis_methodology", max_length=217)
 
 ## 없음
 
@@ -104,6 +110,8 @@ class C053(BaseModel):
 PARSER_REGISTRY: Dict[str, Type[BaseModel]] = {
     "C001": C001,
     "C002": C002,
+    "C021": C021,
+    "C022": C022,
     "C031": C031,
     "C032": C032,
     "C033": C033,

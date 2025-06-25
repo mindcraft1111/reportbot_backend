@@ -1,7 +1,16 @@
 from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from api.models import Users, Projects, Report, ReportTemplate, ReportSection, ReportSectionResult, Reviews, Products
+from api.models import (
+    Users,
+    Projects,
+    Report,
+    ReportTemplate,
+    ReportSection,
+    ReportSectionResult,
+    Reviews,
+    Products,
+)
 from api.models.utils.response import api_response
 from .serializers import (
     ProjectsSerializer,
@@ -15,7 +24,7 @@ from .serializers import (
     ReportSectionResultCreateSerializer,
     ProductsSerializer,
     ReviewsSerializer,
-    UserSerializer
+    UserSerializer,
 )
 
 
@@ -30,10 +39,17 @@ class ProjectsViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectsSerializer
     permission_classes = (IsAuthenticated,)
 
+    def get_queryset(self):
+        """
+        리스트·디테일 공통으로 가장 최근 1개만 반환.
+        """
+        # ↓ 필요 시 다른 정렬·필터 넣기
+        return Projects.objects.order_by("created_at")[:1]
+
     def get_serializer_class(self):
         if self.action == "create":
             return ProjectsCreateSerializer
-        
+
         if self.action == "partial_update":
             return ProjectsUpdateSerializer
         return ProjectsSerializer
@@ -50,7 +66,7 @@ class ProjectsViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return api_response(data=serializer.data)
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -78,11 +94,11 @@ class ReportViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         report = serializer.save(user=request.user)
-        
+
         # 프로젝트 상태 변경
         report.project.set_status(Projects.ProjectStatus.IN_PROGRESS)
         return api_response(data=serializer.data, status_code=201)
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -93,7 +109,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return api_response(data=serializer.data)
-    
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
@@ -121,7 +137,7 @@ class ReportSectionResultViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return ReportSectionResultCreateSerializer
         return ReportSectionResultSerializer
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
